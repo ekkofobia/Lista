@@ -7,8 +7,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Minha Lista">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>Minha Lista — Compras sem esquecer</title>
 
 <style>
@@ -738,6 +738,10 @@ body.dark .popular.sel { background: #2a2452; }
   font-size: 12px;
   box-shadow: 0 8px 25px #0002;
   transition: .22s;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+  line-height: 1.4;
   white-space: nowrap;
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
@@ -2302,7 +2306,8 @@ body.dark .dw-switch::after { transform: translateX(18px); }
       await promptInstalacao.userChoice;
       promptInstalacao = null;
     } else {
-      showToast("No iPhone: toque em Compartilhar e depois em Adicionar à Tela de Início");
+      const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    showToast(ios ? "Compartilhar → Adicionar à Tela de Início" : "Chrome: menu ⋮ → Instalar app");
     }
   });
 

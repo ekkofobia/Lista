@@ -856,6 +856,11 @@ body.dark .category.active { color: #fff; }
 .dw-list-txt { min-width: 0; }
 .dw-list-txt strong { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dw-list-txt small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.dw-editavel { cursor: text; }
+.dw-rename {
+  width: 100%; font: inherit; font-size: 14px; font-weight: 700; color: var(--ink);
+  background: var(--white); border: 1px solid var(--purple); border-radius: 10px; padding: 5px 8px; outline: none;
+}
 .dw-list-acts { display: flex; gap: 6px; }
 .dw-list-acts .dw-icon { width: 36px; height: 36px; border-radius: 10px; }
 .dw-empty { text-align: center; padding: 24px 12px; display: grid; justify-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
@@ -2210,7 +2215,34 @@ body.dark .dw-switch::after { transform: translateX(18px); }
         + '<button class="dw-icon" type="button" data-act="abrir" aria-label="Abrir lista">' + icone(ICONES.chev) + '</button>'
         + '<button class="dw-icon danger" type="button" data-act="excluir" aria-label="Excluir lista">' + icone(ICONES.lixo) + '</button>'
         + '</div>';
-      card.querySelector("strong").textContent = l.name;
+      const titulo = card.querySelector(".dw-list-txt strong");
+      titulo.textContent = l.name;
+      titulo.classList.add("dw-editavel");
+      titulo.title = "Toque para renomear";
+      titulo.addEventListener("click", () => {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.maxLength = 40;
+        input.value = l.name;
+        input.className = "dw-rename";
+        input.setAttribute("aria-label", "Novo nome da lista");
+        titulo.replaceWith(input);
+        input.focus();
+        input.select();
+        let feito = false;
+        const salvar = () => {
+          if (feito) return;
+          feito = true;
+          const novo = input.value.trim();
+          if (novo) { l.name = novo; gravaListas(); }
+          renderDrawer();
+        };
+        input.addEventListener("keydown", e => {
+          if (e.key === "Enter") input.blur();
+          if (e.key === "Escape") { feito = true; renderDrawer(); }
+        });
+        input.addEventListener("blur", salvar);
+      });
       card.querySelector("small").textContent = l.items.length + (l.items.length === 1 ? " produto" : " produtos")
         + " · R$ " + total.toFixed(2).replace(".", ",") + " · " + data;
       card.querySelector('[data-act="abrir"]').addEventListener("click", () => {

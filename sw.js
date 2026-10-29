@@ -1,4 +1,4 @@
-const CACHE = "minha-lista-v5";
+const CACHE = "minha-lista-v6";
 const ARQUIVOS = ["./index.html", "./manifest.json", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 /* cada arquivo é guardado separadamente: se um falhar, o resto ainda é instalado */

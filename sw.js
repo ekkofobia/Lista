@@ -1,5 +1,5 @@
-const CACHE = "minha-lista-v2";
-const ARQUIVOS = ["./minha-lista.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "minha-lista-v5";
+const ARQUIVOS = ["./index.html", "./manifest.json", "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 /* cada arquivo é guardado separadamente: se um falhar, o resto ainda é instalado */
 self.addEventListener("install", e => {
@@ -29,7 +29,7 @@ self.addEventListener("fetch", e => {
           caches.open(CACHE).then(c => c.put(e.request, copia));
         }
         return res;
-      }).catch(() => caches.match("./minha-lista.html"));
+      }).catch(() => caches.match("./index.html"));
     })
   );
 });

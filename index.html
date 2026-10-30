@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -956,10 +957,48 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
 @media (prefers-reduced-motion: reduce) {
   .js .rv, .js .rv:not(.in) { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
+/* tela de abertura: SVG animado que sobe ao terminar (CSS puro, não depende de JS) */
+.splash {
+  position: fixed; inset: 0; z-index: 999; background: #5433eb;
+  display: grid; place-items: center;
+  animation: splashSobe .7s cubic-bezier(.7,0,.2,1) 4.2s forwards;
+}
+.splash svg { width: min(60vw, 240px); height: auto; overflow: visible; }
+.splash .sp-board { fill: none; stroke: #fff; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: spDesenha .8s ease .1s forwards; }
+.splash .sp-clip { fill: #fff; opacity: 0; animation: spAparece .4s ease .9s forwards; }
+.splash .sp-check { fill: none; stroke: #fff; stroke-width: 11; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: spDesenha .6s ease 1.5s forwards; }
+.splash .sp-pen { opacity: 0; animation: spCaneta 2.2s ease 1.6s forwards; }
+@keyframes spDesenha { to { stroke-dashoffset: 0; } }
+@keyframes spAparece { to { opacity: 1; } }
+@keyframes spCaneta {
+  0% { opacity: 0; transform: translate(40px, -40px); }
+  15% { opacity: 1; }
+  70% { opacity: 1; transform: translate(0, 0); }
+  100% { opacity: 0; transform: translate(0, 0); }
+}
+@keyframes splashSobe { to { transform: translateY(-100%); visibility: hidden; } }
+@media (prefers-reduced-motion: reduce) {
+  .splash .sp-board, .splash .sp-check { stroke-dashoffset: 0; animation: none; }
+  .splash .sp-clip { opacity: 1; animation: none; }
+  .splash .sp-pen { display: none; }
+}
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
+<div class="splash" aria-hidden="true">
+  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <rect class="sp-board" pathLength="1" x="50" y="45" width="100" height="125" rx="14"/>
+    <rect class="sp-clip" x="80" y="32" width="40" height="22" rx="6"/>
+    <path class="sp-check" pathLength="1" d="M70 115 L92 137 L132 93"/>
+    <g transform="translate(132 93) rotate(-45)">
+      <g class="sp-pen">
+        <rect x="-7" y="-70" width="14" height="90" rx="5" fill="#fff"/>
+        <path d="M-7 20 L0 36 L7 20 Z" fill="#fff"/>
+      </g>
+    </g>
+  </svg>
+</div>
 <div class="app">
   <header class="topbar">
     <div class="top-search">

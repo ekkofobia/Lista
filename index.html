@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f2f4f5">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yuyu+Short&display=swap" rel="stylesheet">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Minha Lista">
 <link rel="manifest" href="manifest.json">
@@ -363,7 +365,7 @@ body.dark .popular.sel { background: #2a2452; }
   overflow-wrap: anywhere;
 }
 /* nomes com mais de uma palavra: 1px menor e entrelinha 40% menor */
-.popular-name.multi { font-size: 13px; line-height: 1.167; }
+.popular-name.multi { font-size: 12px; line-height: 1.167; }
 .popular-bottom {
   display: flex;
   align-items: center;
@@ -578,6 +580,7 @@ body.dark .popular.sel { background: #2a2452; }
   font-size: 17px;
 }
 .item-details { flex: 1; min-width: 0; }
+.item-name.multi { font-size: 15px; }
 .item-name {
   font-size: 16px;
   font-weight: 650;
@@ -821,6 +824,16 @@ body.dark .qty-list div { background: #000; color: #fff; }
 body.dark .qty-list div.on { background: var(--purple); color: #fff; }
 body.dark .category { color: #fff; }
 body.dark .category.active { color: #fff; }
+body.fla-preto { --purple: #e3000f; --purple-light: #3b0a0d; --bg: #0c0c0c; --white: #1a1a1a; --ink: #ffffff; --muted: #c9c9c9; --line: #3a3a3a; }
+body.fla-preto .category { color: #fff; }
+body.fla-vermelho { --purple: #111111; --purple-light: #7a0812; --bg: #d50000; --white: #ffffff; --ink: #111111; --muted: #2b0505; --line: #9e0a0a; }
+body.fla-vermelho .category { color: #111; }
+body.fla-vermelho .popular { background: #ffffff; color: #111111; }
+body.fla-vermelho .popular-name, body.fla-vermelho .popular small { color: #111111; }
+body.fla-vermelho .popular.sel { background: #111111; outline-color: #111111; }
+body.fla-vermelho .popular.sel .popular-name, body.fla-vermelho .popular.sel small, body.fla-vermelho .popular.sel .plus { color: #ffffff; }
+body.fla-preto .popular.sel { background: #e3000f; outline-color: #ffffff; }
+body.fla-preto .popular.sel .popular-name, body.fla-preto .popular.sel small, body.fla-preto .popular.sel .plus { color: #ffffff; }
 .drawer-top .primary-btn { min-height: 46px; }
 .popular, .item-row, .items-card { border-radius: 10px !important; }
 .item-qty { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -893,7 +906,33 @@ body.dark .dw-switch::after { transform: translateX(18px); }
 .dw-tile svg { width: 22px; height: 22px; color: var(--purple); margin-bottom: 4px; }
 .dw-tile strong { font-size: 14px; }
 .dw-tile small { font-size: 12px; color: var(--muted); line-height: 1.35; }
-.drawer-foot { padding: 12px 20px 16px; text-align: center; font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); }
+.drawer-foot { padding: 12px 16px 14px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: var(--muted); border-top: 1px solid var(--line); }
+.fla-btn { width: 34px; height: 34px; display: grid; place-items: center; border: 0; background: none; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.fla-btn img { width: 30px; height: 30px; object-fit: contain; }
+.criador { display: inline-grid; justify-items: center; line-height: 1.1; }
+.criador-nome { font-family: "Yuyu Short", cursive; font-size: 30px; color: var(--ink); line-height: 1; position: relative; left: -12px; top: -18px; }
+/* rodapé compacto (o menu mantém o layout normal) */
+.drawer-foot { padding: 6px 14px; min-height: 0; align-items: center; }
+.drawer-foot .fla-btn img { width: 26px; height: 26px; }
+.criador { line-height: 1; }
+.criador-lbl { font-size: 13px; }
+.criador-nome { font-size: 26px; }
+/* cartões selecionados (toque) e abas ativas nos temas Flamengo */
+body.fla-preto .popular.added, body.fla-preto .popular.sel { background: #e3000f; }
+body.fla-preto .popular.added .popular-name, body.fla-preto .popular.added small, body.fla-preto .popular.added .plus,
+body.fla-preto .popular.sel .popular-name, body.fla-preto .popular.sel small, body.fla-preto .popular.sel .plus { color: #111111; }
+body.fla-preto .popular.added .plus, body.fla-preto .popular.sel .plus { background: rgba(0,0,0,.15); }
+body.fla-vermelho .popular.added, body.fla-vermelho .popular.sel { background: #111111; }
+body.fla-vermelho .popular.added .popular-name, body.fla-vermelho .popular.added small, body.fla-vermelho .popular.added .plus,
+body.fla-vermelho .popular.sel .popular-name, body.fla-vermelho .popular.sel small, body.fla-vermelho .popular.sel .plus { color: #ffffff; }
+body.fla-preto .category.active { background: #e3000f; border-color: #e3000f; color: #ffffff; }
+body.fla-vermelho .category.active { background: #111111; border-color: #111111; color: #ffffff; }
+body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .category.active { color: #ffffff; }
+.filter-bar { display: flex; gap: 8px; margin: 0 0 10px; }
+.filter-bar select {
+  flex: 1; min-width: 0; min-height: 40px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--white); color: var(--ink); padding: 6px 10px; font: inherit; font-size: 13px; font-weight: 650;
+}
 </style>
 </head>
 <body>
@@ -948,12 +987,7 @@ body.dark .dw-switch::after { transform: translateX(18px); }
           <button class="text-btn" id="selAllBtn" type="button">Selecionar todos</button>
         </div>
         <div class="move-row">
-          <select id="moveSelect" aria-label="Categoria de destino">
-            <option value="">Escolha a categoria</option>
-            <option>Hortifruti</option><option>Mercearia</option><option>Laticínios</option>
-            <option>Carnes</option><option>Padaria</option><option>Bebidas</option>
-            <option>Limpeza</option><option>Higiene</option><option>Outros</option>
-          </select>
+          <select id="moveSelect" aria-label="Categoria de destino"></select>
           <button class="primary-btn move-go" id="moveGo" type="button" disabled>Mover</button>
         </div>
       </div>
@@ -967,9 +1001,20 @@ body.dark .dw-switch::after { transform: translateX(18px); }
       <div class="section-head" style="margin-top:4px">
         <h2>Seus produtos</h2>
         <div class="list-actions">
+          <button class="text-btn" id="filterToggleBtn" type="button">Filtrar</button>
           <button class="text-btn" id="uncheckAllBtn">Desmarcar</button>
           <button class="text-btn" id="clearDoneBtn">Limpar pegos</button>
         </div>
+      </div>
+
+      <div class="filter-bar" id="filterBar" hidden>
+        <select id="filterCat" aria-label="Filtrar por categoria"></select>
+        <select id="filterOrder" aria-label="Ordenar lista">
+          <option value="padrao">Ordem da lista</option>
+          <option value="az">Ordem alfabética</option>
+          <option value="precoAlto">Preço: mais alto</option>
+          <option value="precoBaixo">Preço: mais baixo</option>
+        </select>
       </div>
 
       <div class="items-card" id="itemsCard"></div>
@@ -1055,7 +1100,10 @@ body.dark .dw-switch::after { transform: translateX(18px); }
       </a>
     </section>
   </div>
-  <footer class="drawer-foot">criado por igor</footer>
+  <footer class="drawer-foot">
+    <button class="fla-btn" id="flaBtn" type="button" aria-label="Tema Flamengo"><img src="https://www.footylogos.com/dls/logo/rgba-v1/flamengo.png" alt="Flamengo" width="30" height="30"></button>
+    <span class="criador"><span class="criador-lbl">Criador por:</span><span class="criador-nome">Igor ss</span></span>
+  </footer>
 </aside>
 
 <div class="batch-modal" id="batchModal">
@@ -1694,6 +1742,23 @@ body.dark .dw-switch::after { transform: translateX(18px); }
       });
   }
 
+  /* filtro da lista: categoria e ordem (só muda a exibição) */
+  let filtroCat = "Todas";
+  let filtroOrdem = "padrao";
+  function renderFiltroCat() {
+    const atual = filtroCat;
+    $("filterCat").innerHTML = '<option value="Todas">Todas as categorias</option>'
+      + CATS_BASE.concat(catsExtra).map(c => '<option value="' + c.replace(/"/g, "&quot;") + '">' + c.replace(/</g, "&lt;") + '</option>').join("");
+    $("filterCat").value = atual;
+  }
+  $("filterToggleBtn").addEventListener("click", () => {
+    const bar = $("filterBar");
+    bar.hidden = !bar.hidden;
+    $("filterToggleBtn").textContent = bar.hidden ? "Filtrar" : "Fechar filtro";
+  });
+  $("filterCat").addEventListener("change", () => { filtroCat = $("filterCat").value; renderItems(); });
+  $("filterOrder").addEventListener("change", () => { filtroOrdem = $("filterOrder").value; renderItems(); });
+
   function renderItems() {
     itemsCard.innerHTML = "";
 
@@ -1716,7 +1781,19 @@ body.dark .dw-switch::after { transform: translateX(18px); }
       return;
     }
 
-    selected.forEach(item => {
+    const visiveis = selected.filter(i => filtroCat === "Todas" || (i.category || "Outros") === filtroCat);
+    if (visiveis.length && filtroOrdem === "az") visiveis.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+    if (visiveis.length && filtroOrdem === "precoAlto") visiveis.sort((a, b) => (b.price || 0) - (a.price || 0));
+    if (visiveis.length && filtroOrdem === "precoBaixo") visiveis.sort((a, b) => (a.price || 0) - (b.price || 0));
+    if (!visiveis.length) {
+      const nada = document.createElement("p");
+      nada.className = "empty-note";
+      nada.textContent = "Nenhum item nesse filtro.";
+      itemsCard.appendChild(nada);
+      return;
+    }
+
+    visiveis.forEach(item => {
       const row = document.createElement("div");
       row.className = "item-row" + (item.done ? " done" : "");
       row.dataset.id = item.id;
@@ -1738,7 +1815,7 @@ body.dark .dw-switch::after { transform: translateX(18px); }
       details.className = "item-details";
 
       const name = document.createElement("div");
-      name.className = "item-name";
+      name.className = "item-name" + (item.name.trim().includes(" ") ? " multi" : "");
       name.textContent = item.name;
 
       const meta = document.createElement("div");
@@ -2178,6 +2255,57 @@ body.dark .dw-switch::after { transform: translateX(18px); }
   products.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   products.forEach(p => { const c = catOverrides[normalize(p.name)]; if (c) p.category = c; });
 
+  /* categorias criadas pelo usuário */
+  const CATS_EXTRA_KEY = "minha_lista_cats_extra";
+  const CATS_BASE = ["Hortifruti","Mercearia","Laticínios","Carnes","Padaria","Bebidas","Limpeza","Higiene","Outros"];
+  let catsExtra = [];
+  try { catsExtra = JSON.parse(localStorage.getItem(CATS_EXTRA_KEY) || "[]"); } catch (e) {}
+  function gravaCatsExtra() { try { localStorage.setItem(CATS_EXTRA_KEY, JSON.stringify(catsExtra)); } catch (e) {} }
+  function renderCatTabs() {
+    document.querySelectorAll("#categories [data-extra]").forEach(b => b.remove());
+    catsExtra.forEach(nome => {
+      const b = document.createElement("button");
+      b.className = "category";
+      b.dataset.category = nome;
+      b.dataset.extra = "1";
+      b.textContent = "🏷️ " + nome;
+      $("categories").appendChild(b);
+    });
+  }
+  function renderMoveSelect() {
+    const esc = t => t.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    $("moveSelect").innerHTML = '<option value="">Escolha a categoria</option>'
+      + CATS_BASE.concat(catsExtra).map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join("")
+      + '<option value="__nova__">+ Criar nova categoria</option>';
+  }
+  $("moveSelect").addEventListener("change", () => {
+    const sel = $("moveSelect");
+    if (sel.value !== "__nova__") return;
+    const nome = (prompt("Nome da nova categoria:") || "").trim().slice(0, 24);
+    sel.value = "";
+    if (!nome) return;
+    if (["Todos"].concat(CATS_BASE, catsExtra).some(c => normalize(c) === normalize(nome))) {
+      showToast("Essa categoria já existe");
+      return;
+    }
+    catsExtra.push(nome);
+    gravaCatsExtra();
+    renderCatTabs();
+    renderMoveSelect();
+    renderFiltroCat();
+    sel.value = nome;
+    showToast("Categoria criada: " + nome);
+  });
+  renderCatTabs();
+  renderMoveSelect();
+  renderFiltroCat();
+  try {
+    if (sessionStorage.getItem("minha_lista_abrir_menu")) {
+      sessionStorage.removeItem("minha_lista_abrir_menu");
+      setTimeout(openDrawer, 300);
+    }
+  } catch (e) {}
+
   /* listas salvas (menu ☰) */
   const LISTAS_KEY = "minha_lista_listas";
   let listasSalvas = [];
@@ -2283,7 +2411,7 @@ body.dark .dw-switch::after { transform: translateX(18px); }
     try { tema = localStorage.getItem(TEMA_KEY) || "claro"; } catch (e) {}
     const dados = {
       app: "minha-lista", versao: 1, criadoEm: new Date().toISOString(),
-      listasSalvas, meusItens, categorias: catOverrides, precos, tema
+      listasSalvas, meusItens, categoriasExtra: catsExtra, categorias: catOverrides, precos, tema
     };
     const url = URL.createObjectURL(new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" }));
     const a = document.createElement("a");
@@ -2312,12 +2440,14 @@ body.dark .dw-switch::after { transform: translateX(18px); }
         localStorage.setItem(LISTAS_KEY, JSON.stringify(dados.listasSalvas));
         localStorage.setItem(MEUS_KEY, JSON.stringify(dados.meusItens || []));
         localStorage.setItem(CATS_KEY, JSON.stringify(dados.categorias || {}));
+        localStorage.setItem(CATS_EXTRA_KEY, JSON.stringify(dados.categoriasExtra || []));
         localStorage.setItem(PRECOS_KEY, JSON.stringify(dados.precos || {}));
-        localStorage.setItem(TEMA_KEY, dados.tema === "escuro" ? "escuro" : "claro");
+        localStorage.setItem(TEMA_KEY, ["escuro", "fla-preto", "fla-vermelho"].includes(dados.tema) ? dados.tema : "claro");
       } catch (err) {
         showToast("Não consegui restaurar o backup");
         return;
       }
+      try { sessionStorage.setItem("minha_lista_abrir_menu", "1"); } catch (e) {}
       showToast("Backup restaurado");
       setTimeout(() => location.reload(), 700);
     };
@@ -2346,17 +2476,35 @@ body.dark .dw-switch::after { transform: translateX(18px); }
   /* tema claro / escuro (fica salvo neste aparelho) */
   const TEMA_KEY = "minha_lista_tema";
   const themeBtn = $("themeBtn");
-  function aplicaTema(escuro) {
+  function aplicaTema(modo) {
+    const escuro = modo === "escuro" || modo === "fla-preto";
     document.body.classList.toggle("dark", escuro);
+    document.body.classList.toggle("fla-preto", modo === "fla-preto");
+    document.body.classList.toggle("fla-vermelho", modo === "fla-vermelho");
     $("themeLabel").textContent = escuro ? "Tema claro" : "Tema escuro";
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = escuro ? "#121212" : "#f2f4f5";
   }
-  aplicaTema(localStorage.getItem(TEMA_KEY) === "escuro");
+  aplicaTema(localStorage.getItem(TEMA_KEY) || "claro");
   themeBtn.addEventListener("click", () => {
     const escuro = !document.body.classList.contains("dark");
-    aplicaTema(escuro);
+    aplicaTema(escuro ? "escuro" : "claro");
     try { localStorage.setItem(TEMA_KEY, escuro ? "escuro" : "claro"); } catch (e) {}
+  });
+  /* 3 toques no escudo do Flamengo: vermelho/preto -> branco -> padrão */
+  let flaToques = 0;
+  let flaTimer;
+  $("flaBtn").addEventListener("click", () => {
+    flaToques++;
+    clearTimeout(flaTimer);
+    flaTimer = setTimeout(() => { flaToques = 0; }, 700);
+    if (flaToques < 3) return;
+    flaToques = 0;
+    const atual = localStorage.getItem(TEMA_KEY) || "claro";
+    const prox = atual === "fla-preto" ? "escuro" : atual === "fla-vermelho" ? "claro" : (atual === "escuro" ? "fla-preto" : "fla-vermelho");
+    aplicaTema(prox);
+    try { localStorage.setItem(TEMA_KEY, prox); } catch (e) {}
+    showToast(prox === "fla-preto" ? "Flamengo: fundo preto" : prox === "fla-vermelho" ? "Flamengo: fundo vermelho" : "Tema padrão");
   });
   $("newListBtn").addEventListener("click", () => {
     selected = [];

@@ -913,6 +913,7 @@ body.dark .dw-switch::after { transform: translateX(18px); }
 .criador-nome { font-family: "Yuyu Short", cursive; font-size: 30px; color: var(--ink); line-height: 1; position: relative; left: -12px; top: -18px; }
 /* rodapé compacto (o menu mantém o layout normal) */
 .drawer-foot { padding: 6px 14px; min-height: 0; align-items: center; }
+.criador { align-self: center; position: relative; top: 12px; left: -16px; }
 .drawer-foot .fla-btn img { width: 26px; height: 26px; }
 .criador { line-height: 1; }
 .criador-lbl { font-size: 13px; }
@@ -956,47 +957,38 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
 @media (prefers-reduced-motion: reduce) {
   .js .rv, .js .rv:not(.in) { opacity: 1 !important; transform: none !important; transition: none !important; }
 }
-/* tela de abertura: SVG animado que sobe ao terminar (CSS puro, não depende de JS) */
+/* tela de abertura com vídeo: sai quando o vídeo acaba (ou ao tocar); sem JS, sai sozinha em 12 s */
 .splash {
-  position: fixed; inset: 0; z-index: 999; background: #5433eb;
-  display: grid; place-items: center;
-  animation: splashSobe .7s cubic-bezier(.7,0,.2,1) 4.2s forwards;
+  position: fixed; inset: 0; z-index: 999; background: #000; overflow: hidden;
+  animation: splashSobe .7s cubic-bezier(.7,0,.2,1) 12s forwards;
 }
-.splash svg { width: min(60vw, 240px); height: auto; overflow: visible; }
-.splash .sp-board { fill: none; stroke: #fff; stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: spDesenha .8s ease .1s forwards; }
-.splash .sp-clip { fill: #fff; opacity: 0; animation: spAparece .4s ease .9s forwards; }
-.splash .sp-check { fill: none; stroke: #fff; stroke-width: 11; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: spDesenha .6s ease 1.5s forwards; }
-.splash .sp-pen { opacity: 0; animation: spCaneta 2.2s ease 1.6s forwards; }
-@keyframes spDesenha { to { stroke-dashoffset: 0; } }
-@keyframes spAparece { to { opacity: 1; } }
-@keyframes spCaneta {
-  0% { opacity: 0; transform: translate(40px, -40px); }
-  15% { opacity: 1; }
-  70% { opacity: 1; transform: translate(0, 0); }
-  100% { opacity: 0; transform: translate(0, 0); }
-}
+.splash.sair { animation: splashSobe .7s cubic-bezier(.7,0,.2,1) forwards; }
+.splash-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 @keyframes splashSobe { to { transform: translateY(-100%); visibility: hidden; } }
 @media (prefers-reduced-motion: reduce) {
-  .splash .sp-board, .splash .sp-check { stroke-dashoffset: 0; animation: none; }
-  .splash .sp-clip { opacity: 1; animation: none; }
-  .splash .sp-pen { display: none; }
+  .splash { animation: none; }
+  .splash.sair { animation: splashSobe .01s forwards; }
+}
+.drawer:not(.show) { box-shadow: none; }
+/* ao usar a lista da busca, o resto da tela fica embaçado (cabeçalho e lista continuam nítidos) */
+body:has(#suggestions.show) main,
+body:has(#suggestions.show) .bottom-bar { filter: blur(6px); transition: filter .2s; }
+/* modo simplificado: só o cabeçalho e o botão de baixo; a lista aparece ao ir para ela */
+body.simples #searchPage { display: none !important; }
+body.simples:not(.na-lista) .bottom-bar { display: none !important; }
+body.simples:not(.na-lista) .topbar { top: 10%; height: auto; padding: 0 20px; }
+.simples-nav { display: none; }
+body.simples:not(.na-lista) .simples-nav {
+  display: flex; position: fixed; left: 20px; right: 20px; bottom: 18px; z-index: 30;
+  justify-content: center; align-items: center; min-height: 52px; border: 0; border-radius: 16px;
+  background: var(--purple); color: #fff; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;
 }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
-<div class="splash" aria-hidden="true">
-  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-    <rect class="sp-board" pathLength="1" x="50" y="45" width="100" height="125" rx="14"/>
-    <rect class="sp-clip" x="80" y="32" width="40" height="22" rx="6"/>
-    <path class="sp-check" pathLength="1" d="M70 115 L92 137 L132 93"/>
-    <g transform="translate(132 93) rotate(-45)">
-      <g class="sp-pen">
-        <rect x="-7" y="-70" width="14" height="90" rx="5" fill="#fff"/>
-        <path d="M-7 20 L0 36 L7 20 Z" fill="#fff"/>
-      </g>
-    </g>
-  </svg>
+<div class="splash" aria-label="Carregando">
+  <video class="splash-video" src="https://res.cloudinary.com/dwrq06fta/video/upload/v1793397328/VID_20261030_145145_078_bsl_nffpg4.mp4" poster="https://res.cloudinary.com/dwrq06fta/video/upload/so_0/v1793397328/VID_20261030_145145_078_bsl_nffpg4.jpg" autoplay muted playsinline preload="auto"></video>
 </div>
 <div class="app">
   <header class="topbar">
@@ -1020,6 +1012,7 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
     <button class="menu-btn" id="menuBtn" type="button" aria-label="Listas salvas">☰</button>
   </header>
 
+  <button class="simples-nav" id="simplesNavBtn" type="button">Ir para minha lista</button>
   <main>
     <section class="page active" id="searchPage">
       <div class="section-head">
@@ -1164,7 +1157,7 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
   </div>
   <footer class="drawer-foot">
     <button class="fla-btn" id="flaBtn" type="button" aria-label="Tema Flamengo"><img src="https://www.footylogos.com/dls/logo/rgba-v1/flamengo.png" alt="Flamengo" width="30" height="30"></button>
-    <span class="criador"><span class="criador-lbl">Criador por:</span><span class="criador-nome">Igor ss</span></span>
+    <span class="criador"><span class="criador-lbl">Criador:</span><span class="criador-nome">Igor ss</span></span>
   </footer>
 </aside>
 
@@ -1574,7 +1567,7 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
       showToast(name + " adicionado à lista");
     }
 
-    renderSuggestions();
+    renderSugestoesSilencioso();
     renderPopular();
     renderItems();
     updateSummary();
@@ -1644,10 +1637,29 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
     renderItems();
     updateSummary();
     renderPopular();
-    renderSuggestions();
+    renderSugestoesSilencioso();
     showToast(product.name + " removido da lista");
   }
 
+  /* com teclado aberto, a lista usa o espaço visível da tela (sem cortar os 6 itens) */
+  function ajustaAlturaSugestoes() {
+    if (document.activeElement !== searchInput) { suggestions.style.maxHeight = ""; return; }
+    const vv = window.visualViewport;
+    const altura = vv ? vv.height : window.innerHeight;
+    const topo = suggestions.getBoundingClientRect().top;
+    suggestions.style.maxHeight = Math.max(240, Math.min(altura - topo - 14, 560)) + "px";
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      if (suggestions.classList.contains("show")) ajustaAlturaSugestoes();
+    });
+  }
+  /* re-desenha as sugestões sem abri-las (usado ao adicionar/remover itens) */
+  let silencioso = false;
+  function renderSugestoesSilencioso() {
+    silencioso = true;
+    try { renderSuggestions(); } finally { silencioso = false; }
+  }
   function renderSuggestions() {
     const query = searchInput.value.trim();
     clearSearch.hidden = !query;
@@ -1669,7 +1681,7 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
         if (ca !== cb) return ca - cb;
         return na.localeCompare(nb, "pt-BR");
       })
-      .slice(0, 7);
+      .slice(0, document.activeElement === searchInput ? 6 : 7);
 
     suggestions.innerHTML = "";
 
@@ -1762,10 +1774,16 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
     fechar.className = "suggest-close";
     fechar.setAttribute("aria-label", "Fechar sugestões");
     fechar.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>';
-    fechar.addEventListener("click", () => suggestions.classList.remove("show"));
+    fechar.addEventListener("click", () => {
+      suggestions.classList.remove("show");
+      searchInput.blur();
+    });
     suggestions.appendChild(fechar);
 
-    suggestions.classList.add("show");
+    if (!silencioso) {
+      suggestions.classList.add("show");
+      ajustaAlturaSugestoes();
+    }
   }
 
   function renderPopular() {
@@ -2121,6 +2139,8 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
 
     goBtn.hidden = isList;
     listBtns.hidden = !isList;
+    $("simplesNavBtn").textContent = isList ? "Voltar à busca" : "Ir para minha lista";
+    document.body.classList.toggle("na-lista", isList);
     savePanel.hidden = true;
     $("progressCard").hidden = !isList;
 
@@ -2473,7 +2493,28 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
     drawerOverlay.classList.remove("show");
   }
 
-  $("menuBtn").addEventListener("click", openDrawer);
+  $("simplesNavBtn").addEventListener("click", () => {
+    showPage(listPage.classList.contains("active") ? "search" : "list");
+  });
+  /* 1 toque abre o menu; 3 toques seguidos alternam o modo simplificado */
+  const SIMPLES_KEY = "minha_lista_simples";
+  function aplicaSimples(ligado) {
+    document.body.classList.toggle("simples", ligado);
+    try { localStorage.setItem(SIMPLES_KEY, ligado ? "1" : "0"); } catch (e) {}
+  }
+  let menuToques = 0;
+  let menuTimer;
+  $("menuBtn").addEventListener("click", () => {
+    menuToques++;
+    clearTimeout(menuTimer);
+    if (menuToques >= 3) {
+      menuToques = 0;
+      aplicaSimples(!document.body.classList.contains("simples"));
+      return;
+    }
+    menuTimer = setTimeout(() => { menuToques = 0; openDrawer(); }, 350);
+  });
+  try { if (localStorage.getItem(SIMPLES_KEY) === "1") document.body.classList.add("simples"); } catch (e) {}
 
   /* backup: baixa as listas como arquivo; upload restaura de um arquivo */
   $("backupBtn").addEventListener("click", () => {
@@ -2576,6 +2617,17 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
   }
   new MutationObserver(agendaVarredura).observe(document.body, { childList: true, subtree: true });
   varreduraRolagem();
+
+  /* tela de abertura: sai quando o vídeo termina, dá erro ou ao tocar */
+  const splash = document.querySelector(".splash");
+  if (splash) {
+    const sair = () => splash.classList.add("sair");
+    const video = splash.querySelector("video");
+    video.addEventListener("ended", sair);
+    video.addEventListener("error", sair);
+    splash.addEventListener("click", sair);
+    setTimeout(sair, 12000);
+  }
 
   /* baixar o app (PWA) */
   let promptInstalacao = null;

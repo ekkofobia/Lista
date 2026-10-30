@@ -2,7 +2,7 @@
   "name": "Minha Lista",
   "short_name": "Minha Lista",
   "description": "Lista de compras do supermercado, funciona offline.",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

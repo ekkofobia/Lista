@@ -933,7 +933,31 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
   flex: 1; min-width: 0; min-height: 40px; border-radius: 12px; border: 1px solid var(--line);
   background: var(--white); color: var(--ink); padding: 6px 10px; font: inherit; font-size: 13px; font-weight: 650;
 }
+/* seta para fechar as sugestões */
+.suggest-close {
+  position: sticky; bottom: -6px; display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 36px; margin: 4px -6px -6px; padding: 6px; border: 0;
+  border-top: 1px solid var(--line); border-radius: 0 0 18px 18px;
+  background: var(--white); color: var(--muted); cursor: pointer;
+}
+.suggest-close svg { display: block; }
+
+/* animações de rolagem: só valem quando o JS está ativo */
+.js .rv:not(.in) { opacity: 0; transform: translate3d(0, 14px, 0); }
+.js .rv {
+  transition: opacity .6s cubic-bezier(.22,.61,.36,1) var(--d, 0ms),
+              transform .6s cubic-bezier(.22,.61,.36,1) var(--d, 0ms);
+  will-change: opacity, transform;
+}
+.js .rv.in { opacity: 1; transform: none; }
+@media (max-width: 600px) {
+  .js .rv:not(.in) { transform: translate3d(0, 10px, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .rv, .js .rv:not(.in) { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
 </style>
+<script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
 <div class="app">
@@ -1694,6 +1718,14 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
     footer.className = "suggest-footer";
     footer.textContent = "Não encontrou? Você também pode adicionar o produto com o nome que quiser.";
     suggestions.appendChild(footer);
+
+    const fechar = document.createElement("button");
+    fechar.type = "button";
+    fechar.className = "suggest-close";
+    fechar.setAttribute("aria-label", "Fechar sugestões");
+    fechar.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>';
+    fechar.addEventListener("click", () => suggestions.classList.remove("show"));
+    suggestions.appendChild(fechar);
 
     suggestions.classList.add("show");
   }
@@ -2460,6 +2492,52 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
       navigator.serviceWorker.register("./sw.js").catch(() => {});
     });
   }
+
+  /* animações ao rolar: elementos aparecem ao entrar na tela (IntersectionObserver) */
+  const SEL_REVELAR = ".section-head, .list-hero > *, .dw-sec, .dw-tile, .dw-row, .dw-list, .popular, .item-row, .empty-state, .saved-card";
+  const reduzirMovimento = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const paisJaMostrados = new WeakSet();
+  const observadorRolagem = ("IntersectionObserver" in window) ? new IntersectionObserver(entradas => {
+    entradas.forEach(en => {
+      if (!en.isIntersecting) return;
+      const el = en.target;
+      observadorRolagem.unobserve(el);
+      el.classList.add("in");
+      const atraso = parseInt(el.style.getPropertyValue("--d")) || 0;
+      setTimeout(() => { el.classList.remove("rv", "in"); el.style.removeProperty("--d"); }, 900 + atraso);
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -30px 0px" }) : null;
+
+  function varreduraRolagem() {
+    const porPai = new Map();
+    document.querySelectorAll(SEL_REVELAR).forEach(el => {
+      if (el.dataset.rv) return;
+      el.dataset.rv = "1";
+      const pai = el.parentElement;
+      if (!pai) return;
+      if (!porPai.has(pai)) porPai.set(pai, []);
+      porPai.get(pai).push(el);
+    });
+    porPai.forEach((lista, pai) => {
+      const jaMostrou = paisJaMostrados.has(pai);
+      paisJaMostrados.add(pai);
+      lista.forEach((el, i) => {
+        /* re-renderizações (ex.: tocar um produto) aparecem direto, sem piscar */
+        if (reduzirMovimento || !observadorRolagem || jaMostrou) { el.classList.add("in"); return; }
+        el.classList.add("rv");
+        el.style.setProperty("--d", (i % 6) * 60 + "ms");
+        observadorRolagem.observe(el);
+      });
+    });
+  }
+  let varreduraAgendada = false;
+  function agendaVarredura() {
+    if (varreduraAgendada) return;
+    varreduraAgendada = true;
+    requestAnimationFrame(() => { varreduraAgendada = false; varreduraRolagem(); });
+  }
+  new MutationObserver(agendaVarredura).observe(document.body, { childList: true, subtree: true });
+  varreduraRolagem();
 
   /* baixar o app (PWA) */
   let promptInstalacao = null;

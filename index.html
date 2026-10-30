@@ -2454,6 +2454,13 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
     leitor.readAsText(arq);
   });
 
+  /* registra o service worker (sem ele o Chrome não oferece instalar) */
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    });
+  }
+
   /* baixar o app (PWA) */
   let promptInstalacao = null;
   const installBtn = $("installBtn");
@@ -2469,7 +2476,7 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
       promptInstalacao = null;
     } else {
       const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
-    showToast(ios ? "Compartilhar → Adicionar à Tela de Início" : "Chrome: menu ⋮ → Instalar app");
+      showToast(ios ? "Compartilhar → Adicionar à Tela de Início" : "Chrome: menu ⋮ → Instalar app (ou feche e abra a página de novo)");
     }
   });
 

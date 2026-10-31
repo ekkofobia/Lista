@@ -480,17 +480,30 @@ body.dark .popular.sel { background: #2a2452; }
   border-radius: 18px;
   box-shadow: var(--shadow);
 }
+.qty-box {
+  display: flex; align-items: center; flex-shrink: 0; gap: 2px;
+  width: 50px; border: 1px solid var(--line); border-radius: 9px;
+  background: var(--white); margin-right: 6px; padding-right: 4px;
+}
+.qty-box:focus-within { border-color: #b6a9ff; }
+.qty-input {
+  width: 30px; min-width: 0; border: 0; background: transparent; padding: 5px 2px;
+  font: inherit; font-size: 11px; font-weight: 700; text-align: center; color: var(--ink); outline: none;
+}
+.qty-un { font-size: 9px; color: var(--muted); font-weight: 600; }
+.qty-input::-webkit-inner-spin-button, .qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.qty-input { -moz-appearance: textfield; appearance: textfield; }
 .price-input {
-  width: 74px;
+  width: 62px;
   flex-shrink: 0;
   border: 1px solid var(--line);
   border-radius: 9px;
   padding: 5px 6px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-align: right;
   color: var(--ink);
-  background: #fafafa;
+  background: var(--white);
 }
 .price-input:focus { border-color: #b6a9ff; background: var(--white); }
 .total-line {
@@ -1912,12 +1925,6 @@ body.simples:not(.na-lista) .simples-nav {
 
       details.append(name);
 
-      if (item.qty > 1) {
-        const qtyInfo = document.createElement("div");
-        qtyInfo.className = "item-qty";
-        qtyInfo.textContent = item.qty + " unidades";
-        details.append(qtyInfo);
-      }
 
       const del = document.createElement("button");
       del.type = "button";
@@ -1947,7 +1954,31 @@ body.simples:not(.na-lista) .simples-nav {
         updateSummary();
       });
 
-      row.append(check, details, price, del);
+      const qty = document.createElement("input");
+      qty.type = "number";
+      qty.inputMode = "numeric";
+      qty.min = "1";
+      qty.max = "999";
+      qty.step = "1";
+      qty.className = "qty-input";
+      qty.setAttribute("aria-label", "Quantidade de " + item.name);
+      qty.value = item.qty || 1;
+      qty.addEventListener("input", () => {
+        const n = parseInt(qty.value, 10);
+        if (n >= 1) { item.qty = Math.min(n, 999); updateSummary(); }
+      });
+      qty.addEventListener("blur", () => {
+        if (!(parseInt(qty.value, 10) >= 1)) qty.value = item.qty || 1;
+      });
+
+      const qtyBox = document.createElement("label");
+      qtyBox.className = "qty-box";
+      const qtyUn = document.createElement("span");
+      qtyUn.className = "qty-un";
+      qtyUn.textContent = "un";
+      qtyBox.append(qty, qtyUn);
+
+      row.append(check, details, qtyBox, price, del);
       itemsCard.appendChild(row);
     });
   }

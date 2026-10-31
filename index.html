@@ -2597,9 +2597,19 @@ body.simples:not(.na-lista) .simples-nav {
   });
 
   /* registra o service worker (sem ele o Chrome não oferece instalar) */
+  /* atualização automática: quando sai uma versão nova do site, o app busca e recarrega sozinho */
   if ("serviceWorker" in navigator) {
+    const tinhaControle = !!navigator.serviceWorker.controller;
+    let recarregou = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!tinhaControle || recarregou) return;
+      recarregou = true;
+      location.reload();
+    });
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
+      navigator.serviceWorker.register("./sw.js")
+        .then(reg => reg.update())
+        .catch(() => {});
     });
   }
 

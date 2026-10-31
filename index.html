@@ -1000,7 +1000,7 @@ body.simples:not(.na-lista) .simples-nav {
 .qty-box { width: 44px; padding-right: 3px; }
 .qty-input { width: 20px; padding: 5px 0 5px 3px; }
 .price-box {
-  display: flex; align-items: center; flex-shrink: 0; width: 88px; gap: 2px;
+  display: flex; align-items: center; flex-shrink: 0; width: 84px; gap: 2px;
   border: 1px solid var(--line); border-radius: 9px; background: var(--white);
   padding-left: 5px; margin-right: 0;
 }
@@ -1011,6 +1011,8 @@ body.simples:not(.na-lista) .simples-nav {
   padding: 5px 5px 5px 0; font-size: 11px; text-align: right;
 }
 .price-box .price-input:focus { border: 0; background: transparent; }
+.price-box .price-input::-webkit-inner-spin-button, .price-box .price-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.price-box .price-input { -moz-appearance: textfield; appearance: textfield; }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>

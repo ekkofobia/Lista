@@ -996,6 +996,21 @@ body.simples:not(.na-lista) .simples-nav {
   justify-content: center; align-items: center; min-height: 52px; border: 0; border-radius: 16px;
   background: var(--purple); color: #fff; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;
 }
+/* quantidade e preço com "un" e "R$" dentro do próprio card */
+.qty-box { width: 44px; padding-right: 3px; }
+.qty-input { width: 20px; padding: 5px 0 5px 3px; }
+.price-box {
+  display: flex; align-items: center; flex-shrink: 0; width: 88px; gap: 2px;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--white);
+  padding-left: 5px; margin-right: 0;
+}
+.price-box:focus-within { border-color: #b6a9ff; }
+.price-cur { font-size: 10px; font-weight: 700; color: var(--muted); }
+.price-box .price-input {
+  flex: 1; min-width: 0; width: auto; border: 0; background: transparent;
+  padding: 5px 5px 5px 0; font-size: 11px; text-align: right;
+}
+.price-box .price-input:focus { border: 0; background: transparent; }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
@@ -1944,7 +1959,7 @@ body.simples:not(.na-lista) .simples-nav {
       price.inputMode = "decimal";
       price.min = "0";
       price.step = "0.01";
-      price.placeholder = "R$";
+      price.placeholder = "0,00";
       price.className = "price-input";
       price.setAttribute("aria-label", "Preço unitário de " + item.name);
       price.value = item.price ? item.price : "";
@@ -1978,7 +1993,14 @@ body.simples:not(.na-lista) .simples-nav {
       qtyUn.textContent = "un";
       qtyBox.append(qty, qtyUn);
 
-      row.append(check, details, qtyBox, price, del);
+      const priceBox = document.createElement("label");
+      priceBox.className = "price-box";
+      const priceCur = document.createElement("span");
+      priceCur.className = "price-cur";
+      priceCur.textContent = "R$";
+      priceBox.append(priceCur, price);
+
+      row.append(check, details, qtyBox, priceBox, del);
       itemsCard.appendChild(row);
     });
   }

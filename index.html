@@ -1013,6 +1013,31 @@ body.simples:not(.na-lista) .simples-nav {
 .price-box .price-input:focus { border: 0; background: transparent; }
 .price-box .price-input::-webkit-inner-spin-button, .price-box .price-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .price-box .price-input { -moz-appearance: textfield; appearance: textfield; }
+.price-box { width: 96px; padding-right: 0; }
+.price-box {
+  width: auto; height: 34px; padding: 0; gap: 0; align-items: stretch; flex-shrink: 0;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--white); overflow: hidden;
+}
+.price-box .price-cur { font-size: 10px; font-weight: 700; color: var(--muted); align-self: center; padding-left: 4px; }
+.price-box .price-input {
+  flex: 0 0 auto; width: 34px; min-width: 0; border: 0; background: transparent;
+  padding: 0 0 0 2px; font-size: 11px; text-align: left; align-self: center;
+}
+.price-box button {
+  width: 30px; height: 30px; align-self: center; aspect-ratio: 1 / 1; flex: 0 0 auto; border: 0; background: transparent; padding: 0; margin: 0;
+  font-size: 15px; font-weight: 700; line-height: 1; color: var(--ink); cursor: pointer;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.price-box button:first-child { border-right: 1px solid var(--line); }
+.price-box button:last-child { border-left: 1px solid var(--line); }
+.item-name { font-size: 15px; }
+.item-name.multi { font-size: 14px; }
+.qty-input { width: 18px; padding: 5px 0; text-align: right; }
+.qty-box { width: 44px; height: 34px; padding: 0; margin-right: -2px; justify-content: center; }
+.qty-box:focus-within, .price-box:focus-within { border-color: var(--line); box-shadow: none; }
+.qty-input:focus, .price-input:focus, .qty-input:focus-visible, .price-input:focus-visible { outline: none; box-shadow: none; }
+.qty-un { margin-left: -1px; margin-right: 4px; }
+.item-details { min-width: 0; }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
@@ -1877,6 +1902,42 @@ body.simples:not(.na-lista) .simples-nav {
   $("filterCat").addEventListener("change", () => { filtroCat = $("filterCat").value; renderItems(); });
   $("filterOrder").addEventListener("change", () => { filtroOrdem = $("filterOrder").value; renderItems(); });
 
+  /* ajuste de preço pelos botões + e -: toque = 0,05 | toque rápido duplo = 0,15 | segurar = 1 real a cada 200 ms */
+  function ajustaPrecoItem(item, input, delta) {
+    const atual = Number(item.price) || 0;
+    const novo = Math.max(0, Math.round((atual + delta) * 100) / 100);
+    item.price = novo;
+    input.value = novo.toFixed(2);
+    lembraPreco(item.name, novo);
+    updateSummary();
+  }
+  function ligaPasso(btn, sinal, item, input) {
+    let timer = null, rep = null, segurando = false, ultimoToque = 0;
+    const parar = () => { clearTimeout(timer); clearInterval(rep); timer = null; rep = null; };
+    btn.addEventListener("pointerdown", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      segurando = false;
+      parar();
+      timer = setTimeout(() => {
+        segurando = true;
+        ajustaPrecoItem(item, input, sinal);
+        rep = setInterval(() => ajustaPrecoItem(item, input, sinal), 200);
+      }, 400);
+    });
+    btn.addEventListener("pointerup", (e) => {
+      e.stopPropagation();
+      const foiSegurar = segurando;
+      parar();
+      if (foiSegurar) { segurando = false; return; }
+      const agora = Date.now();
+      const rapido = agora - ultimoToque < 350;
+      ultimoToque = agora;
+      ajustaPrecoItem(item, input, sinal * (rapido ? 0.10 : 0.05));
+    });
+    btn.addEventListener("pointerleave", () => { if (!segurando) parar(); });
+    btn.addEventListener("pointercancel", () => { parar(); segurando = false; });
+  }
+
   function renderItems() {
     itemsCard.innerHTML = "";
 
@@ -1964,7 +2025,8 @@ body.simples:not(.na-lista) .simples-nav {
       price.placeholder = "0,00";
       price.className = "price-input";
       price.setAttribute("aria-label", "Preço unitário de " + item.name);
-      price.value = item.price ? item.price : "";
+      price.value = item.price ? Number(item.price).toFixed(2) : "";
+      price.addEventListener("blur", () => { const v = parseFloat(price.value); if (!isNaN(v)) price.value = v.toFixed(2); });
       price.addEventListener("input", () => {
         item.price = parseFloat(price.value) || 0;
         lembraPreco(item.name, item.price);
@@ -1979,13 +2041,14 @@ body.simples:not(.na-lista) .simples-nav {
       qty.step = "1";
       qty.className = "qty-input";
       qty.setAttribute("aria-label", "Quantidade de " + item.name);
-      qty.value = item.qty || 1;
+      qty.value = String(item.qty || 1).padStart(2, "0");
       qty.addEventListener("input", () => {
         const n = parseInt(qty.value, 10);
         if (n >= 1) { item.qty = Math.min(n, 999); updateSummary(); }
       });
       qty.addEventListener("blur", () => {
-        if (!(parseInt(qty.value, 10) >= 1)) qty.value = item.qty || 1;
+        if (!(parseInt(qty.value, 10) >= 1)) qty.value = String(item.qty || 1).padStart(2, "0");
+        else qty.value = String(parseInt(qty.value, 10)).padStart(2, "0");
       });
 
       const qtyBox = document.createElement("label");
@@ -2000,7 +2063,15 @@ body.simples:not(.na-lista) .simples-nav {
       const priceCur = document.createElement("span");
       priceCur.className = "price-cur";
       priceCur.textContent = "R$";
-      priceBox.append(priceCur, price);
+      const bUp = document.createElement("button");
+      bUp.type = "button"; bUp.textContent = "+";
+      bUp.setAttribute("aria-label", "Aumentar preço de " + item.name);
+      const bDn = document.createElement("button");
+      bDn.type = "button"; bDn.textContent = "\u2212";
+      bDn.setAttribute("aria-label", "Diminuir preço de " + item.name);
+      ligaPasso(bUp, 1, item, price);
+      ligaPasso(bDn, -1, item, price);
+      priceBox.append(bDn, priceCur, price, bUp);
 
       row.append(check, details, qtyBox, priceBox, del);
       itemsCard.appendChild(row);

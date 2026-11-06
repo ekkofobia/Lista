@@ -523,7 +523,6 @@ body.dark .popular.sel { background: #2a2452; }
   gap: 10px;
   padding: 6px 10px;
   border-bottom: 1px solid #f0f0f0;
-  animation: appear .2s ease;
 }
 .item-row:last-child { border-bottom: 0; }
 .item-row {
@@ -1038,6 +1037,147 @@ body.simples:not(.na-lista) .simples-nav {
 .qty-input:focus, .price-input:focus, .qty-input:focus-visible, .price-input:focus-visible { outline: none; box-shadow: none; }
 .qty-un { margin-left: -1px; margin-right: 4px; }
 .item-details { min-width: 0; }
+
+/* botão de layout (lista / grade) */
+.layout-btn {
+  flex: 0 0 44px; min-height: 40px; display: flex; align-items: center; justify-content: center;
+  border-radius: 12px; border: 1px solid var(--line); background: var(--white); color: var(--ink); cursor: pointer; padding: 0;
+}
+/* contadores: quantidade (un) e preço usam o mesmo modelo */
+.qty-box .q-step, .price-box button {
+  display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  width: 20px; height: 20px; padding: 0; margin: 0; border: 0; border-radius: 7px;
+  background: var(--purple-light); color: var(--ink); font-size: 13px; font-weight: 700; line-height: 1; cursor: pointer;
+  touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.qty-box { width: auto; height: 34px; padding: 0 3px; gap: 2px; justify-content: center; }
+.price-box { width: auto; height: 34px; padding: 0 3px; gap: 2px; align-items: center; }
+.item-row { gap: 6px; }
+.price-box .price-cur { padding-left: 2px; }
+.price-box button:first-child, .price-box button:last-child { border: 0; }
+
+/* grade: 3 colunas, título até 2 linhas, cards organizados */
+.items-card.grade {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 8px;
+  background: transparent; box-shadow: none; border-radius: 0;
+  max-height: 600px; overflow-y: auto; overscroll-behavior: contain;
+}
+.items-card.grade .item-row {
+  display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "check . del" "name name name" "qty qty qty" "price price price";
+  gap: 6px; align-items: center; padding: 6px; margin: 0; border: 0; border-radius: 16px;
+  background: var(--white); box-shadow: var(--shadow); min-width: 0;
+}
+.items-card.grade .item-row + .item-row { border-top: 0; }
+.items-card.grade .check { grid-area: check; }
+.items-card.grade .delete-btn { grid-area: del; }
+.items-card.grade .item-details { grid-area: name; min-width: 0; }
+.items-card.grade .item-name {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: 14px !important; line-height: 1.2; min-height: 2.4em;
+}
+.items-card.grade .item-meta { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.items-card.grade .qty-box { grid-area: qty; width: 100%; margin: 0; justify-content: center; }
+.items-card.grade .price-box { grid-area: price; width: 100%; margin: 0; }
+.items-card.grade .price-box .price-input { flex: 1 1 0; width: 0; min-width: 0; }
+.items-card.grade .qty-box .q-step { width: 22px; height: 22px; }
+.items-card.grade .price-box { padding: 0 2px; gap: 1px; }
+/* altura dos cards da grade: cerca de 20% menor */
+.items-card.grade .item-row { padding: 5px; gap: 4px; }
+.items-card.grade .item-name { min-height: 0; }
+.items-card.grade .qty-box, .items-card.grade .price-box { height: 28px; }
+
+/* item pego: card azul, título riscado, sem check verde */
+.item-row.done, .items-card.grade .item-row.done { background: var(--purple); }
+.item-row.done .check { background: #ffffff; border-color: #ffffff; color: var(--purple); }
+.item-row.done .item-name { color: #ffffff; text-decoration: line-through; }
+.item-row.done .item-meta { color: rgba(255,255,255,.75); }
+.item-row.done .delete-btn { color: #ffffff; }
+
+/* item comprado: discreto (checkbox roxo, nome riscado, fundo bem leve) */
+.item-row.done, .items-card.grade .item-row.done { background: #f6f3ff; }
+.items-card.grade .item-row.done { box-shadow: inset 0 0 0 1px #d9d0ff, var(--shadow); }
+.item-row.done .check { background: var(--purple); border-color: var(--purple); color: #ffffff; }
+.item-row.done .item-name { color: #6f6a7d; text-decoration: line-through; }
+.item-row.done .item-meta { color: #a09cb0; }
+.item-row.done .delete-btn { color: var(--muted); }
+
+/* menu de três pontos */
+.delete-btn { font-size: 18px; line-height: 1; }
+.item-menu {
+  position: absolute; z-index: 60; min-width: 180px; padding: 6px; display: flex; flex-direction: column; gap: 2px;
+  background: var(--white); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 30px rgba(20,20,20,.12);
+}
+.item-menu[hidden] { display: none; }
+.item-menu button {
+  text-align: left; padding: 10px 12px; border: 0; border-radius: 10px; background: transparent;
+  color: var(--ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.item-menu button:hover, .item-menu button:focus-visible { background: var(--purple-light); outline: none; }
+.item-menu button.danger { color: #c62828; }
+
+/* rodapé mais compacto */
+.bottom-bar { padding-top: 6px; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+.progress-card { padding: 8px 12px; }
+.progress-track { height: 4px; }
+
+/* seletor de modo (lista | grade): o ativo fica destacado */
+.seg {
+  display: flex; flex: 0 0 auto; gap: 2px; padding: 3px; border-radius: 12px;
+  background: var(--white); border: 1px solid var(--line);
+}
+.seg button {
+  min-height: 32px; padding: 0 10px; border: 0; border-radius: 9px; background: transparent;
+  color: var(--muted); font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--purple); color: #ffffff; }
+.filter-bar select { min-width: 0; }
+
+/* lista: nomes quebram em palavras inteiras, sem cortar */
+.item-row:not(.grade-row) .item-name { overflow-wrap: break-word; word-break: normal; }
+
+/* lista: nome em linha própria, com largura total; controles logo abaixo, alinhados ao nome */
+.items-card:not(.grade) .item-row {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr) 18px;
+  grid-template-areas: "check name del" ". ctrls ."; column-gap: 10px; row-gap: 6px; align-items: center;
+}
+.items-card:not(.grade) .check { grid-area: check; }
+.items-card:not(.grade) .item-details { grid-area: name; min-width: 0; }
+.items-card:not(.grade) .item-name { overflow: visible; display: block; -webkit-line-clamp: unset; min-height: 0; }
+.items-card:not(.grade) .delete-btn { grid-area: del; justify-self: end; }
+.items-card:not(.grade) .ctrls { grid-area: ctrls; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.items-card:not(.grade) .qty-box, .items-card:not(.grade) .price-box { height: 32px; }
+.items-card.grade .ctrls { display: contents; }
+
+/* lista (padrão do modelo): nome + "R$ x / un", contador de quantidade, preço à direita, ⋮ */
+.item-sub { font-size: 11px; font-weight: 600; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.items-card.grade .item-sub { display: none; }
+.items-card:not(.grade) .item-row {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto 16px;
+  grid-template-areas: "check name qty price del";
+  column-gap: 6px; row-gap: 0; align-items: center; padding: 9px 8px;
+}
+.items-card:not(.grade) .item-row + .item-row { border-top: 1px solid #efeff3; }
+.items-card:not(.grade) .item-meta { display: none; }
+.items-card:not(.grade) .check { grid-area: check; }
+.items-card:not(.grade) .item-details { grid-area: name; min-width: 0; }
+.items-card:not(.grade) .item-name { font-size: 15px; font-weight: 700; overflow: visible; display: block; -webkit-line-clamp: unset; min-height: 0; }
+.items-card:not(.grade) .ctrls { display: contents; }
+.items-card:not(.grade) .qty-box { grid-area: qty; width: auto; height: 30px; padding: 0 3px; gap: 2px; border-radius: 10px; }
+.items-card:not(.grade) .qty-box .q-step { width: 17px; height: 17px; font-size: 11px; border-radius: 6px; }
+.items-card:not(.grade) .qty-box .qty-input { width: 18px; font-size: 13px; }
+.items-card:not(.grade) .price-box { grid-area: price; width: auto; height: auto; padding: 0; border: 0; background: transparent; gap: 2px; }
+.items-card:not(.grade) .price-box button { display: none; }
+.items-card:not(.grade) .price-box .price-cur { font-size: 12px; font-weight: 700; color: var(--ink); padding-left: 0; }
+.items-card:not(.grade) .price-box .price-input { width: 46px; font-size: 14px; font-weight: 700; padding: 0; text-align: right; color: var(--ink); }
+.items-card:not(.grade) .delete-btn { grid-area: del; justify-self: end; font-size: 18px; color: var(--muted); }
+.items-card:not(.grade) .item-row.done { background: #f6f3ff; }
+.items-card:not(.grade) .item-row.done .item-name { color: #6f6a7d; }
+
+/* lista: linhas um pouco mais baixas (−3%) e itens comprados separados visualmente */
+.items-card:not(.grade) .item-row { padding-top: 8.2px; padding-bottom: 8.2px; }
+.items-card:not(.grade) .item-row.done { margin: 3px 6px; border-radius: 14px; }
+.items-card:not(.grade) .item-row.done, .items-card:not(.grade) .item-row.done + .item-row { border-top: 0; }
+.item-sub { font-size: 11px; }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
@@ -1125,6 +1265,10 @@ body.simples:not(.na-lista) .simples-nav {
           <option value="precoAlto">Preço: mais alto</option>
           <option value="precoBaixo">Preço: mais baixo</option>
         </select>
+        <div class="seg" id="layoutSeg" role="group" aria-label="Modo de visualização">
+          <button type="button" data-l="lista" aria-pressed="true">Lista</button>
+          <button type="button" data-l="grade" aria-pressed="false">Grade</button>
+        </div>
       </div>
 
       <div class="items-card" id="itemsCard"></div>
@@ -1166,6 +1310,10 @@ body.simples:not(.na-lista) .simples-nav {
   </div>
 </div>
 
+<div class="item-menu" id="itemMenu" hidden>
+  <button type="button" data-act="edit">Editar nome</button>
+  <button type="button" data-act="del" class="danger">Excluir produto</button>
+</div>
 <div class="qty-picker" id="qtyPicker">
   <div class="qty-list" id="qtyList"></div>
 </div>
@@ -1902,12 +2050,73 @@ body.simples:not(.na-lista) .simples-nav {
   $("filterCat").addEventListener("change", () => { filtroCat = $("filterCat").value; renderItems(); });
   $("filterOrder").addEventListener("change", () => { filtroOrdem = $("filterOrder").value; renderItems(); });
 
+  /* subtítulo do item: total = preço unitário × quantidade */
+  function textoTotal(item) {
+    const total = Math.round((Number(item.price) || 0) * (Number(item.qty) || 1) * 100) / 100;
+    return "R$ " + total.toFixed(2).replace(".", ",");
+  }
+  function atualizaSub(item, sub) { if (sub) sub.textContent = textoTotal(item); }
+
+  /* menu de três pontos de cada item: editar nome ou excluir (com confirmação) */
+  const itemMenu = $("itemMenu");
+  let menuItemId = null;
+  function fechaMenuItem() { itemMenu.hidden = true; menuItemId = null; }
+  function abreMenuItem(btn, id) {
+    menuItemId = id;
+    const r = btn.getBoundingClientRect();
+    itemMenu.hidden = false;
+    itemMenu.style.top = (r.bottom + window.scrollY + 6) + "px";
+    itemMenu.style.left = Math.max(8, r.right + window.scrollX - 190) + "px";
+  }
+  document.addEventListener("pointerdown", e => {
+    if (!itemMenu.hidden && !e.target.closest("#itemMenu") && !e.target.closest(".delete-btn")) fechaMenuItem();
+  });
+  itemMenu.addEventListener("click", e => {
+    const act = e.target.closest("[data-act]");
+    if (!act || menuItemId === null) return;
+    const it = selected.find(x => x.id === menuItemId);
+    const id = menuItemId;
+    fechaMenuItem();
+    if (!it) return;
+    if (act.dataset.act === "edit") {
+      const novo = window.prompt("Nome do produto", it.name);
+      if (novo && novo.trim()) { it.name = novo.trim(); renderItems(); renderPopular(); updateSummary(); }
+    } else if (act.dataset.act === "del") {
+      if (!window.confirm("Excluir \"" + it.name + "\" da lista?")) return;
+      selected = selected.filter(p => p.id !== id);
+      renderItems();
+      updateSummary();
+      renderPopular();
+      showToast(it.name + " removido");
+    }
+  });
+
+  /* layout da lista: linhas (padrão) ou grade de 3 colunas */
+  const LAYOUT_KEY = "minha_lista_layout";
+  const ICO_GRADE_UNUSED = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
+  const ICO_LISTA = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+  function aplicaLayout(grade) {
+    itemsCard.classList.toggle("grade", grade);
+    $("layoutSeg").querySelectorAll("button").forEach(b => {
+      b.setAttribute("aria-pressed", String((b.dataset.l === "grade") === grade));
+    });
+  }
+  $("layoutSeg").querySelectorAll("button").forEach(b => {
+    b.addEventListener("click", () => {
+      const grade = b.dataset.l === "grade";
+      aplicaLayout(grade);
+      try { localStorage.setItem(LAYOUT_KEY, grade ? "grade" : "lista"); } catch (err) {}
+    });
+  });
+  try { aplicaLayout(localStorage.getItem(LAYOUT_KEY) === "grade"); } catch (err) { aplicaLayout(false); }
+
   /* ajuste de preço pelos botões + e -: toque = 0,05 | toque rápido duplo = 0,15 | segurar = 1 real a cada 200 ms */
   function ajustaPrecoItem(item, input, delta) {
     const atual = Number(item.price) || 0;
     const novo = Math.max(0, Math.round((atual + delta) * 100) / 100);
     item.price = novo;
     input.value = novo.toFixed(2);
+    atualizaSub(item, input._sub);
     lembraPreco(item.name, novo);
     updateSummary();
   }
@@ -2001,20 +2210,20 @@ body.simples:not(.na-lista) .simples-nav {
       meta.className = "item-meta";
       meta.textContent = item.category;
 
-      details.append(name);
+      const sub = document.createElement("div");
+      sub.className = "item-sub";
+      sub.textContent = textoTotal(item);
+      details.append(name, sub);
 
 
       const del = document.createElement("button");
       del.type = "button";
       del.className = "delete-btn";
-      del.textContent = "×";
-      del.setAttribute("aria-label", "Excluir " + item.name);
-      del.addEventListener("click", () => {
-        selected = selected.filter(p => p.id !== item.id);
-        renderItems();
-        updateSummary();
-        renderPopular();
-        showToast(item.name + " removido");
+      del.textContent = "⋮";
+      del.setAttribute("aria-label", "Opções de " + item.name);
+      del.addEventListener("click", e => {
+        e.stopPropagation();
+        abreMenuItem(del, item.id);
       });
 
       const price = document.createElement("input");
@@ -2027,8 +2236,10 @@ body.simples:not(.na-lista) .simples-nav {
       price.setAttribute("aria-label", "Preço unitário de " + item.name);
       price.value = item.price ? Number(item.price).toFixed(2) : "";
       price.addEventListener("blur", () => { const v = parseFloat(price.value); if (!isNaN(v)) price.value = v.toFixed(2); });
+      price._sub = sub;
       price.addEventListener("input", () => {
         item.price = parseFloat(price.value) || 0;
+        atualizaSub(item, sub);
         lembraPreco(item.name, item.price);
         updateSummary();
       });
@@ -2042,21 +2253,37 @@ body.simples:not(.na-lista) .simples-nav {
       qty.className = "qty-input";
       qty.setAttribute("aria-label", "Quantidade de " + item.name);
       qty.value = String(item.qty || 1).padStart(2, "0");
+      qty._sub = sub;
       qty.addEventListener("input", () => {
         const n = parseInt(qty.value, 10);
-        if (n >= 1) { item.qty = Math.min(n, 999); updateSummary(); }
+        if (n >= 1) { item.qty = Math.min(n, 999); atualizaSub(item, sub); updateSummary(); }
       });
       qty.addEventListener("blur", () => {
         if (!(parseInt(qty.value, 10) >= 1)) qty.value = String(item.qty || 1).padStart(2, "0");
         else qty.value = String(parseInt(qty.value, 10)).padStart(2, "0");
       });
 
-      const qtyBox = document.createElement("label");
+      const qtyBox = document.createElement("div");
       qtyBox.className = "qty-box";
       const qtyUn = document.createElement("span");
       qtyUn.className = "qty-un";
       qtyUn.textContent = "un";
-      qtyBox.append(qty, qtyUn);
+      const qDn = document.createElement("button");
+      qDn.type = "button"; qDn.className = "q-step"; qDn.textContent = "\u2212";
+      qDn.setAttribute("aria-label", "Diminuir quantidade de " + item.name);
+      const qUp = document.createElement("button");
+      qUp.type = "button"; qUp.className = "q-step"; qUp.textContent = "+";
+      qUp.setAttribute("aria-label", "Aumentar quantidade de " + item.name);
+      const ajustaQtd = d => {
+        const n = Math.min(999, Math.max(1, (Number(item.qty) || 1) + d));
+        item.qty = n;
+        qty.value = String(n).padStart(2, "0");
+        atualizaSub(item, sub);
+        updateSummary();
+      };
+      qDn.addEventListener("click", () => ajustaQtd(-1));
+      qUp.addEventListener("click", () => ajustaQtd(1));
+      qtyBox.append(qDn, qty, qtyUn, qUp);
 
       const priceBox = document.createElement("label");
       priceBox.className = "price-box";
@@ -2073,7 +2300,10 @@ body.simples:not(.na-lista) .simples-nav {
       ligaPasso(bDn, -1, item, price);
       priceBox.append(bDn, priceCur, price, bUp);
 
-      row.append(check, details, qtyBox, priceBox, del);
+      const ctrls = document.createElement("div");
+      ctrls.className = "ctrls";
+      ctrls.append(qtyBox, priceBox);
+      row.append(check, details, ctrls, del);
       itemsCard.appendChild(row);
     });
   }
@@ -2125,6 +2355,7 @@ body.simples:not(.na-lista) .simples-nav {
     if (hold) clearTimeout(hold.timer);
     const h = { x: e.clientX, y: e.clientY, moved: false, fired: false, timer: null, o };
     hold = h;
+    if (o.canPick === false) { h.timer = null; return; }
     h.timer = setTimeout(() => {
       if (hold !== h) return; /* o toque já terminou */
       h.fired = true;
@@ -2172,14 +2403,19 @@ body.simples:not(.na-lista) .simples-nav {
   });
 
   itemsCard.addEventListener("pointerdown", e => {
-    if (e.target.closest("button, input")) return;
+    const qb = e.target.closest(".qty-box");
+    if (e.target.closest(".q-step")) return;
+    if (!qb && e.target.closest("button, input")) return;
     const row = e.target.closest(".item-row");
     if (!row) return;
     const id = Number(row.dataset.id);
     const item = () => selected.find(x => x.id === id);
     startHold(e, {
+      canPick: !!qb, /* segurar só no card da quantidade (un) abre a lista de 1 a 30 */
       current: () => (item() ? item().qty : 1),
-      onTap: () => toggleDone(id),
+      onTap: () => {
+        if (!qb) toggleDone(id);
+      },
       onPick: q => {
         const it = item();
         if (it) { it.qty = q; renderItems(); updateSummary(); renderPopular(); }

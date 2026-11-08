@@ -254,6 +254,36 @@ h1 {
   background: #e6f5e9;
   font-size: 16px;
 }
+.sug-qty {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 0 3px;
+  border-radius: 11px;
+  background: var(--purple-light);
+  color: var(--purple);
+}
+.sug-step {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--purple);
+  font-size: 16px;
+  line-height: 1;
+  font-weight: 600;
+}
+.sug-num {
+  min-width: 26px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
 .suggest-footer {
   border-top: 1px solid #eee;
   padding: 10px 10px 6px;
@@ -977,6 +1007,24 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
 .splash.sair { animation: splashSobe .7s cubic-bezier(.7,0,.2,1) forwards; }
 .splash-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 @keyframes splashSobe { to { transform: translateY(-100%); visibility: hidden; } }
+.splash-skip {
+  position: absolute; z-index: 2;
+  top: max(16px, env(safe-area-inset-top)); right: 16px;
+  border: 0; border-radius: 999px; padding: 8px 14px;
+  background: rgba(0,0,0,.45); color: #fff; font-size: 13px; font-weight: 700;
+  backdrop-filter: blur(4px);
+}
+.splash-actions {
+  position: absolute; z-index: 2; left: 16px; right: 16px;
+  bottom: max(28px, env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 10px;
+}
+.splash-btn {
+  border: 0; border-radius: 16px; padding: 14px 16px;
+  background: rgba(255,255,255,.94); color: #1d1a33;
+  font-size: 15px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+.splash-btn.primary { background: var(--purple); color: #fff; }
 @media (prefers-reduced-motion: reduce) {
   .splash { animation: none; }
   .splash.sair { animation: splashSobe .01s forwards; }
@@ -1221,11 +1269,30 @@ body.simples:not(.na-lista) .simples-nav {
 .tour-arrow.down { bottom: -7px; }
 .tour-nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .tour-nav .tour-next { width: auto; min-height: 42px; padding: 0 18px; }
+
+/* janela de pergunta */
+.dlg-ask h3 { margin: 0; }
+.dlg-ask p { margin: 0; color: var(--ink); font-size: 14px; line-height: 1.4; }
+.dlg-ask-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+.dlg-ask-btns .primary-btn { min-height: 48px; font-size: 14px; padding: 0 10px; }
+.primary-btn.danger { background: #c62828; box-shadow: 0 10px 22px rgba(198,40,40,.28); }
+
+/* lista automática: cor levemente diferente em cada tema */
+.dw-list.auto { background: #efeaff; border-color: #d6cbff; }
+body.dark .dw-list.auto { background: #2b2452; border-color: #3d3372; }
+body.fla-preto .dw-list.auto { background: #2a0b0e; border-color: #5a1a20; }
+body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
 <body>
 <div class="splash" aria-label="Carregando">
+  <button class="splash-skip" id="splashSkip" type="button">Pular</button>
+  <div class="splash-actions">
+    <button class="splash-btn primary" id="splashGo" type="button" hidden>Minhas listas salvas</button>
+    <button class="splash-btn" id="splashScan" type="button">Escanear uma lista (foto)</button>
+    <button class="splash-btn" id="splashNew" type="button">Nova lista</button>
+  </div>
   <video class="splash-video" src="https://res.cloudinary.com/dwrq06fta/video/upload/v1793397328/VID_20261030_145145_078_bsl_nffpg4.mp4" poster="https://res.cloudinary.com/dwrq06fta/video/upload/so_0/v1793397328/VID_20261030_145145_078_bsl_nffpg4.jpg" autoplay muted playsinline preload="auto"></video>
 </div>
 <div class="app">
@@ -1966,7 +2033,7 @@ body.simples:not(.na-lista) .simples-nav {
         if (ca !== cb) return ca - cb;
         return na.localeCompare(nb, "pt-BR");
       })
-      .slice(0, document.activeElement === searchInput ? 6 : 7);
+      ;
 
     suggestions.innerHTML = "";
 
@@ -1993,9 +2060,36 @@ body.simples:not(.na-lista) .simples-nav {
 
       info.append(name, category);
 
-      const plus = document.createElement("span");
-      plus.className = "plus" + (existing ? " added" : "");
-      plus.textContent = existing ? "✓" : "+";
+      let plus;
+      if (existing) {
+        plus = document.createElement("span");
+        plus.className = "sug-qty";
+        const dn = document.createElement("button");
+        dn.type = "button"; dn.className = "sug-step"; dn.textContent = "\u2212";
+        dn.setAttribute("aria-label", "Diminuir");
+        const num = document.createElement("span");
+        num.className = "sug-num"; num.textContent = existing.qty;
+        const up = document.createElement("button");
+        up.type = "button"; up.className = "sug-step"; up.textContent = "+";
+        up.setAttribute("aria-label", "Aumentar");
+        const mudaQtd = delta => {
+          const it = selected.find(x => normalize(x.name) === normalize(product.name));
+          if (!it) return;
+          if (delta < 0 && it.qty <= 1) { toggleProduto(product); renderSuggestions(); return; }
+          it.qty = Math.min(999, it.qty + delta);
+          renderItems(); updateSummary(); renderPopular(); renderSugestoesSilencioso();
+          renderSuggestions();
+        };
+        [dn, up].forEach(b => {
+          b.addEventListener("pointerdown", e => e.stopPropagation());
+          b.addEventListener("click", e => { e.stopPropagation(); mudaQtd(b === up ? 1 : -1); });
+        });
+        plus.append(dn, num, up);
+      } else {
+        plus = document.createElement("span");
+        plus.className = "plus";
+        plus.textContent = "+";
+      }
 
       button.append(info, plus);
       button.addEventListener("click", () => {
@@ -2139,6 +2233,63 @@ body.simples:not(.na-lista) .simples-nav {
   }
   function atualizaSub(item, sub) { if (sub) sub.textContent = textoTotal(item); }
 
+  /* janela de pergunta no estilo do app (usa as cores do tema) */
+  function pergunta(opts) {
+    return new Promise(resolve => {
+      const ov = document.createElement("div");
+      ov.className = "dlg-overlay";
+      const box = document.createElement("div");
+      box.className = "dlg dlg-ask";
+      box.setAttribute("role", "dialog");
+      box.setAttribute("aria-modal", "true");
+      const h = document.createElement("h3");
+      h.textContent = opts.titulo || "";
+      box.append(h);
+      if (opts.texto) {
+        const p = document.createElement("p");
+        p.textContent = opts.texto;
+        box.append(p);
+      }
+      let input = null;
+      if (opts.campo) {
+        input = document.createElement("input");
+        input.type = "text";
+        input.maxLength = opts.max || 40;
+        input.value = opts.valor || "";
+        input.setAttribute("aria-label", opts.titulo || "Campo");
+        box.append(input);
+      }
+      const btns = document.createElement("div");
+      btns.className = "dlg-ask-btns";
+      const cancelar = document.createElement("button");
+      cancelar.type = "button";
+      cancelar.className = "primary-btn ghost";
+      cancelar.textContent = opts.cancelar || "Cancelar";
+      const ok = document.createElement("button");
+      ok.type = "button";
+      ok.className = "primary-btn" + (opts.perigo ? " danger" : "");
+      ok.textContent = opts.confirmar || "OK";
+      btns.append(cancelar, ok);
+      box.append(btns);
+      ov.append(box);
+      document.body.append(ov);
+      const fecha = v => {
+        document.removeEventListener("keydown", tecla);
+        ov.remove();
+        resolve(v);
+      };
+      const tecla = e => {
+        if (e.key === "Escape") fecha(null);
+        if (e.key === "Enter" && input && document.activeElement === input) fecha(input.value.trim());
+      };
+      cancelar.addEventListener("click", () => fecha(null));
+      ok.addEventListener("click", () => fecha(input ? input.value.trim() : true));
+      ov.addEventListener("click", e => { if (e.target === ov) fecha(null); });
+      document.addEventListener("keydown", tecla);
+      setTimeout(() => (input || ok).focus(), 60);
+    });
+  }
+
   /* menu de três pontos de cada item: editar nome ou excluir (com confirmação) */
   const itemMenu = $("itemMenu");
   let menuItemId = null;
@@ -2153,7 +2304,7 @@ body.simples:not(.na-lista) .simples-nav {
   document.addEventListener("pointerdown", e => {
     if (!itemMenu.hidden && !e.target.closest("#itemMenu") && !e.target.closest(".delete-btn")) fechaMenuItem();
   });
-  itemMenu.addEventListener("click", e => {
+  itemMenu.addEventListener("click", async e => {
     const act = e.target.closest("[data-act]");
     if (!act || menuItemId === null) return;
     const it = selected.find(x => x.id === menuItemId);
@@ -2161,10 +2312,11 @@ body.simples:not(.na-lista) .simples-nav {
     fechaMenuItem();
     if (!it) return;
     if (act.dataset.act === "edit") {
-      const novo = window.prompt("Nome do produto", it.name);
-      if (novo && novo.trim()) { it.name = novo.trim(); renderItems(); renderPopular(); updateSummary(); }
+      const novo = await pergunta({ titulo: "Editar nome", campo: true, valor: it.name, confirmar: "Salvar" });
+      if (novo) { it.name = novo; renderItems(); renderPopular(); updateSummary(); }
     } else if (act.dataset.act === "del") {
-      if (!window.confirm("Excluir \"" + it.name + "\" da lista?")) return;
+      const ok = await pergunta({ titulo: "Excluir produto", texto: "Excluir \"" + it.name + "\" da lista?", confirmar: "Excluir", perigo: true });
+      if (!ok) return;
       selected = selected.filter(p => p.id !== id);
       renderItems();
       updateSummary();
@@ -2194,29 +2346,42 @@ body.simples:not(.na-lista) .simples-nav {
   const TOUR = [
     { sel: "#menuBtn", abre: false, texto: "Suas listas salvas vão parar aqui." },
     { sel: "#drawer [data-act='abrir']", abre: true, texto: "Para usar uma lista salva, clique nessa seta." },
-    { sel: "#backupBtn", abre: true, texto: "Nunca perca sua lista: toque em Backup para salvar um arquivo no celular." },
-    { sel: "#uploadBtn", abre: true, texto: "Depois, use o arquivo do backup em Restaurar para recuperar tudo." }
+    { sel: "#backupBtn", abre: true, tempo: 7000, texto: "Nunca perca sua lista: toque em Backup para salvar um arquivo no celular." },
+    { sel: "#uploadBtn", abre: true, tempo: 7000, texto: "Depois, use o arquivo do backup em Restaurar para recuperar tudo." },
+    { sel: "#saveListBtn", abre: false, lista: true, ultimo: true, texto: "Para guardar sua lista, toque em Salvar." }
   ];
   let tourAtivo = false;
   let tourPasso = 0;
+  let tourRapido = false;
+  let tourTimer = null;
+  const TOUR_KEY = "minha_lista_tour_visto";
+  function tourJaVisto() { try { return localStorage.getItem(TOUR_KEY) === "1"; } catch (e) { return false; } }
+  function marcaTourVisto() { try { localStorage.setItem(TOUR_KEY, "1"); } catch (e) {} }
   const tourRing = $("tourRing");
   const tourBox = $("tourBox");
   const tourArrow = $("tourArrow");
-  function iniciaTour() {
+  /* automático só na primeira vez; com rapido = true (5 toques) passa sozinho a cada 5 s */
+  function iniciaTour(rapido) {
+    if (!rapido && tourJaVisto()) return;
     tourAtivo = true;
+    tourRapido = !!rapido;
     tourPasso = 0;
     setTimeout(mostraPassoTour, 250);
   }
   function fimTour() {
+    clearTimeout(tourTimer);
+    marcaTourVisto();
     tourAtivo = false;
     tourRing.hidden = true;
     tourBox.hidden = true;
     closeDrawer();
   }
   function mostraPassoTour() {
+    clearTimeout(tourTimer);
     if (tourPasso >= TOUR.length) { fimTour(); return; }
     const st = TOUR[tourPasso];
     if (st.abre) openDrawer(); else closeDrawer();
+    if (st.lista && !$("listPage").classList.contains("active")) showPage("list");
     setTimeout(() => {
       const el = document.querySelector(st.sel);
       if (!el) { tourPasso++; mostraPassoTour(); return; }
@@ -2227,7 +2392,7 @@ body.simples:not(.na-lista) .simples-nav {
       tourRing.style.width = (r.width + 12) + "px";
       tourRing.style.height = (r.height + 12) + "px";
       $("tourText").textContent = st.texto;
-      $("tourNext").textContent = tourPasso === TOUR.length - 1 ? "Entendi" : "Próximo";
+      $("tourNext").textContent = st.ultimo ? "Salvar" : "Próximo";
       tourBox.hidden = false;
       const w = Math.min(290, window.innerWidth - 24);
       const h = tourBox.offsetHeight || 140;
@@ -2239,9 +2404,14 @@ body.simples:not(.na-lista) .simples-nav {
       tourBox.style.top = (abaixo ? r.bottom + 16 : Math.max(12, r.top - 16 - h)) + "px";
       tourArrow.className = "tour-arrow " + (abaixo ? "up" : "down");
       tourArrow.style.left = (cx - left - 7) + "px";
-    }, st.abre ? 380 : 60);
+      if (tourRapido) tourTimer = setTimeout(() => { if (st.ultimo) fimTour(); else { tourPasso++; mostraPassoTour(); } }, st.tempo || 5000);
+    }, (st.abre || st.lista) ? 380 : 60);
   }
-  $("tourNext").addEventListener("click", () => { tourPasso++; mostraPassoTour(); });
+  $("tourNext").addEventListener("click", () => {
+    if (TOUR[tourPasso] && TOUR[tourPasso].ultimo) { fimTour(); $("saveListBtn").click(); return; }
+    tourPasso++;
+    mostraPassoTour();
+  });
   $("tourSkip").addEventListener("click", fimTour);
 
   /* layout da lista: linhas (padrão) ou grade de 3 colunas */
@@ -2631,8 +2801,25 @@ body.simples:not(.na-lista) .simples-nav {
     } catch (e) {}
   }
 
+  /* lista automática: sempre uma, atualizada a cada mudança e sem botão de excluir */
+  function sincronizaListaAuto() {
+    if (!Array.isArray(listasSalvas) || !selected.length) return;
+    const items = selected.map(({ id, done, ...rest }) => ({ ...rest, done: false }));
+    const idx = listasSalvas.findIndex(l => l.auto);
+    if (idx < 0) {
+      listasSalvas.unshift({ id: Date.now(), name: "Lista automática", items, auto: true });
+      gravaListas();
+      return;
+    }
+    if (JSON.stringify(listasSalvas[idx].items) !== JSON.stringify(items)) {
+      listasSalvas[idx].items = items;
+      gravaListas();
+    }
+  }
+
   function updateSummary() {
     gravaAtual();
+    sincronizaListaAuto();
     let mudouQtd = false;
     selected.forEach(it => {
       const k = normalize(it.name);
@@ -2897,10 +3084,10 @@ body.simples:not(.na-lista) .simples-nav {
       + CATS_BASE.concat(catsExtra).map(c => '<option value="' + esc(c) + '">' + esc(c) + '</option>').join("")
       + '<option value="__nova__">+ Criar nova categoria</option>';
   }
-  $("moveSelect").addEventListener("change", () => {
+  $("moveSelect").addEventListener("change", async () => {
     const sel = $("moveSelect");
     if (sel.value !== "__nova__") return;
-    const nome = (prompt("Nome da nova categoria:") || "").trim().slice(0, 24);
+    const nome = ((await pergunta({ titulo: "Nova categoria", campo: true, valor: "", confirmar: "Criar", max: 24 })) || "").slice(0, 24);
     sel.value = "";
     if (!nome) return;
     if (["Todos"].concat(CATS_BASE, catsExtra).some(c => normalize(c) === normalize(nome))) {
@@ -2955,12 +3142,12 @@ body.simples:not(.na-lista) .simples-nav {
       const total = l.items.reduce((sum, it) => sum + (it.price || 0) * it.qty, 0);
       const data = new Date(l.id).toLocaleDateString("pt-BR");
       const card = document.createElement("article");
-      card.className = "dw-list";
+      card.className = "dw-list" + (l.auto ? " auto" : "");
       card.innerHTML = '<div class="dw-list-ico">' + icone(ICONES.lista) + '</div>'
         + '<div class="dw-list-txt"><strong></strong><small></small></div>'
         + '<div class="dw-list-acts">'
         + '<button class="dw-icon" type="button" data-act="abrir" aria-label="Abrir lista">' + icone(ICONES.chev) + '</button>'
-        + '<button class="dw-icon danger" type="button" data-act="excluir" aria-label="Excluir lista">' + icone(ICONES.lixo) + '</button>'
+        + (l.auto ? '' : '<button class="dw-icon danger" type="button" data-act="excluir" aria-label="Excluir lista">' + icone(ICONES.lixo) + '</button>')
         + '</div>';
       const titulo = card.querySelector(".dw-list-txt strong");
       titulo.textContent = l.name;
@@ -3001,7 +3188,7 @@ body.simples:not(.na-lista) .simples-nav {
         renderPopular();
         showPage("list");
       });
-      card.querySelector('[data-act="excluir"]').addEventListener("click", () => {
+      if (!l.auto) card.querySelector('[data-act="excluir"]').addEventListener("click", () => {
         listasSalvas = listasSalvas.filter(x => x !== l);
         gravaListas();
         renderDrawer();
@@ -3033,15 +3220,25 @@ body.simples:not(.na-lista) .simples-nav {
   }
   let menuToques = 0;
   let menuTimer;
+  /* menu ☰: 3 toques = modo simplificado | 5 toques = tour (5 s por passo) | 1 toque = abre o menu */
+  let menuTaps = [];
+  let simplesTimer = null;
   $("menuBtn").addEventListener("click", () => {
-    menuToques++;
+    const agora = Date.now();
+    menuTaps = menuTaps.filter(t => agora - t < 2500);
+    menuTaps.push(agora);
+    const n = menuTaps.length;
     clearTimeout(menuTimer);
-    if (menuToques >= 3) {
-      menuToques = 0;
-      aplicaSimples(!document.body.classList.contains("simples"));
+    clearTimeout(simplesTimer);
+    if (n >= 5) { menuTaps = []; iniciaTour(true); return; }
+    if (n === 3) {
+      simplesTimer = setTimeout(() => {
+        menuTaps = [];
+        aplicaSimples(!document.body.classList.contains("simples"));
+      }, 600);
       return;
     }
-    menuTimer = setTimeout(() => { menuToques = 0; openDrawer(); }, 350);
+    menuTimer = setTimeout(() => { menuTaps = []; openDrawer(); }, 350);
   });
   try { if (localStorage.getItem(SIMPLES_KEY) === "1") document.body.classList.add("simples"); } catch (e) {}
 
@@ -3164,8 +3361,14 @@ body.simples:not(.na-lista) .simples-nav {
     const video = splash.querySelector("video");
     video.addEventListener("ended", sair);
     video.addEventListener("error", sair);
-    splash.addEventListener("click", sair);
+    splash.addEventListener("click", e => { if (!e.target.closest("button")) sair(); });
     setTimeout(sair, 12000);
+    $("splashSkip").addEventListener("click", sair);
+    const temListas = Array.isArray(listasSalvas) && listasSalvas.length > 0;
+    $("splashGo").hidden = !temListas;
+    $("splashGo").addEventListener("click", () => { sair(); openDrawer(); });
+    $("splashScan").addEventListener("click", () => { sair(); $("batchImgFile").click(); });
+    $("splashNew").addEventListener("click", () => { sair(); pedeNovaLista(); });
   }
 
   /* baixar o app (PWA) */

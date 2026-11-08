@@ -1178,6 +1178,29 @@ body.simples:not(.na-lista) .simples-nav {
 .items-card:not(.grade) .item-row.done { margin: 3px 6px; border-radius: 14px; }
 .items-card:not(.grade) .item-row.done, .items-card:not(.grade) .item-row.done + .item-row { border-top: 0; }
 .item-sub { font-size: 11px; }
+
+/* linha do rodapé: Nova lista + Ir para minha lista */
+.go-row { display: flex; gap: 10px; align-items: stretch; }
+.go-row #goBtn { flex: 1; min-width: 0; }
+.primary-btn.new-btn { width: auto; flex: 0 0 auto; padding: 0 16px; white-space: nowrap; }
+
+/* diálogo de nova lista */
+.dlg-overlay {
+  position: fixed; inset: 0; z-index: 90; display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(20,20,20,.35);
+}
+.dlg-overlay[hidden] { display: none; }
+.dlg {
+  width: 100%; max-width: 520px; padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+  background: var(--white); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; gap: 10px;
+}
+.dlg h3 { margin: 0; font-size: 18px; }
+.dlg p { margin: 0; font-size: 14px; color: var(--muted); }
+.dlg input {
+  min-height: 46px; border-radius: 12px; border: 1px solid var(--line); padding: 0 12px;
+  font: inherit; font-size: 15px; background: var(--white); color: var(--ink);
+}
+.dlg-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
@@ -1291,9 +1314,12 @@ body.simples:not(.na-lista) .simples-nav {
         <strong id="totalValue">R$ 0,00</strong>
       </div>
     </div>
-    <button class="primary-btn" id="goBtn" disabled>
-      <span>Ir para minha lista</span>
-    </button>
+    <div class="go-row" id="goRow">
+      <button class="primary-btn ghost new-btn" id="newListQuickBtn" type="button">Nova lista</button>
+      <button class="primary-btn" id="goBtn" disabled>
+        <span>Ir para minha lista</span>
+      </button>
+    </div>
     <div class="two-btns" id="listBtns" hidden>
       <button class="primary-btn" id="backToSearchBtn" type="button">
         <span>＋ Adicionar produtos</span>
@@ -1306,6 +1332,19 @@ body.simples:not(.na-lista) .simples-nav {
         <button class="primary-btn ghost" id="cancelSaveBtn" type="button">Voltar</button>
         <button class="primary-btn" id="confirmSaveBtn" type="button">Salvar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="dlg-overlay" id="newListOverlay" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <h3 id="dlgTitle">Nova lista</h3>
+    <p id="dlgText"></p>
+    <input id="dlgName" type="text" maxlength="40" aria-label="Nome da lista" placeholder="Nome da lista">
+    <div class="dlg-btns">
+      <button type="button" class="primary-btn" id="dlgSave">Salvar e criar nova</button>
+      <button type="button" class="primary-btn ghost" id="dlgNoSave">Criar sem salvar</button>
+      <button type="button" class="text-btn" id="dlgCancel">Cancelar</button>
     </div>
   </div>
 </div>
@@ -2470,7 +2509,16 @@ body.simples:not(.na-lista) .simples-nav {
     updateSummary();
   }
 
+  /* estado atual salvo no aparelho: sobrevive a fechar a página */
+  const ATUAL_KEY = "minha_lista_atual";
+  function gravaAtual() {
+    try {
+      localStorage.setItem(ATUAL_KEY, JSON.stringify({ selected, nextId, filtroCat, filtroOrdem }));
+    } catch (e) {}
+  }
+
   function updateSummary() {
+    gravaAtual();
     const total = countTotal();
     const done = countDone();
 
@@ -2499,7 +2547,7 @@ body.simples:not(.na-lista) .simples-nav {
     searchPage.classList.toggle("active", !isList);
     listPage.classList.toggle("active", isList);
 
-    goBtn.hidden = isList;
+    $("goRow").hidden = isList;
     listBtns.hidden = !isList;
     $("simplesNavBtn").textContent = isList ? "Voltar à busca" : "Ir para minha lista";
     document.body.classList.toggle("na-lista", isList);
@@ -3053,14 +3101,49 @@ body.simples:not(.na-lista) .simples-nav {
     try { localStorage.setItem(TEMA_KEY, prox); } catch (e) {}
     showToast(prox === "fla-preto" ? "Flamengo: fundo preto" : prox === "fla-vermelho" ? "Flamengo: fundo vermelho" : "Tema padrão");
   });
-  $("newListBtn").addEventListener("click", () => {
+  /* nova lista: se houver itens, pergunta se quer salvar a atual */
+  const newListOverlay = $("newListOverlay");
+  const dlgName = $("dlgName");
+  function limpaListaAtual() {
     selected = [];
     nextId = 1;
-    closeDrawer();
+    updateSummary();
     renderSuggestions();
     renderPopular();
-    showPage("search");
+    renderItems();
+  }
+  function pedeNovaLista() {
+    if (!selected.length) {
+      limpaListaAtual();
+      showToast("Nova lista criada");
+      return;
+    }
+    const d = new Date();
+    dlgName.value = "Lista " + String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0");
+    $("dlgText").textContent = "Sua lista atual tem " + selected.length + (selected.length === 1 ? " produto" : " produtos") + ". Quer salvar antes de começar outra?";
+    newListOverlay.hidden = false;
+  }
+  function fechaDlg() { newListOverlay.hidden = true; }
+  $("newListQuickBtn").addEventListener("click", pedeNovaLista);
+  $("dlgCancel").addEventListener("click", fechaDlg);
+  newListOverlay.addEventListener("click", e => { if (e.target === newListOverlay) fechaDlg(); });
+  $("dlgNoSave").addEventListener("click", () => {
+    fechaDlg();
+    limpaListaAtual();
     showToast("Nova lista criada");
+  });
+  $("dlgSave").addEventListener("click", () => {
+    const name = dlgName.value.trim() || "Lista sem nome";
+    const items = selected.map(({ id, done, ...rest }) => ({ ...rest, done: false }));
+    listasSalvas.unshift({ id: Date.now(), name, items });
+    gravaListas();
+    fechaDlg();
+    limpaListaAtual();
+    showToast("Lista salva. Nova lista criada");
+  });
+  $("newListBtn").addEventListener("click", () => {
+    closeDrawer();
+    pedeNovaLista();
   });
   $("drawerClose").addEventListener("click", closeDrawer);
   drawerOverlay.addEventListener("click", closeDrawer);
@@ -3092,6 +3175,17 @@ body.simples:not(.na-lista) .simples-nav {
     openDrawer();
     showToast("Lista salva");
   });
+
+  /* restaura o que estava na lista ao abrir o site de novo */
+  try {
+    const d = JSON.parse(localStorage.getItem(ATUAL_KEY) || "null");
+    if (d && Array.isArray(d.selected)) {
+      selected = d.selected;
+      nextId = Number(d.nextId) || (Math.max(0, ...selected.map(x => Number(x.id) || 0)) + 1);
+      if (d.filtroOrdem) { filtroOrdem = d.filtroOrdem; $("filterOrder").value = filtroOrdem; }
+      if (d.filtroCat) { filtroCat = d.filtroCat; if (typeof renderFiltroCat === "function") renderFiltroCat(); }
+    }
+  } catch (e) {}
 
   renderPopular();
   renderItems();

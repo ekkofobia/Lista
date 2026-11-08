@@ -1203,6 +1203,24 @@ body.simples:not(.na-lista) .simples-nav {
 .dlg-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; align-items: stretch; }
 .dlg-btns .two-btns .primary-btn { min-height: 50px; font-size: 14px; padding: 0 8px; }
 .dlg-btns #dlgCancel { align-self: center; }
+
+/* dica e tour */
+.tip-text { margin: 0; font-size: 15px; line-height: 1.4; color: var(--ink); font-weight: 600; }
+.tour-ring {
+  position: fixed; z-index: 100; pointer-events: none; border-radius: 14px;
+  border: 3px solid #ffffff; box-shadow: 0 0 0 9999px rgba(20,20,20,.5), 0 0 0 3px var(--purple);
+}
+.tour-ring[hidden], .tour-box[hidden] { display: none; }
+.tour-box {
+  position: fixed; z-index: 101; background: var(--white); color: var(--ink); border-radius: 16px;
+  padding: 14px; box-shadow: 0 12px 30px rgba(20,20,20,.25); display: flex; flex-direction: column; gap: 10px;
+}
+.tour-box p { margin: 0; font-size: 14px; line-height: 1.4; font-weight: 600; }
+.tour-arrow { position: absolute; width: 14px; height: 14px; background: var(--white); transform: rotate(45deg); }
+.tour-arrow.up { top: -7px; }
+.tour-arrow.down { bottom: -7px; }
+.tour-nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.tour-nav .tour-next { width: auto; min-height: 42px; padding: 0 18px; }
 </style>
 <script>document.documentElement.classList.add("js");</script>
 </head>
@@ -1350,6 +1368,22 @@ body.simples:not(.na-lista) .simples-nav {
       </div>
       <button type="button" class="text-btn" id="dlgCancel">Cancelar</button>
     </div>
+  </div>
+</div>
+
+<div class="dlg-overlay" id="tipOverlay" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="tipText">
+    <p id="tipText" class="tip-text"></p>
+    <button type="button" class="primary-btn" id="tipOk">Entendi</button>
+  </div>
+</div>
+<div class="tour-ring" id="tourRing" hidden></div>
+<div class="tour-box" id="tourBox" hidden>
+  <span class="tour-arrow" id="tourArrow"></span>
+  <p id="tourText"></p>
+  <div class="tour-nav">
+    <button type="button" class="text-btn" id="tourSkip">Pular</button>
+    <button type="button" class="primary-btn tour-next" id="tourNext">Próximo</button>
   </div>
 </div>
 
@@ -1736,6 +1770,11 @@ body.simples:not(.na-lista) .simples-nav {
   /* memória de preços: o último preço digitado de cada produto fica salvo neste aparelho */
   const PRECOS_KEY = "minha_lista_precos";
   let precos = {};
+  /* última quantidade de cada produto, guardada no aparelho */
+  const QTD_KEY = "minha_lista_qtds";
+  let qtds = {};
+  try { qtds = JSON.parse(localStorage.getItem(QTD_KEY) || "{}") || {}; } catch (e) { qtds = {}; }
+  function qtdLembrada(name) { return Number(qtds[normalize(name)]) || 1; }
   try { precos = JSON.parse(localStorage.getItem(PRECOS_KEY) || "{}"); } catch (e) {}
 
   function lembraPreco(name, price) {
@@ -1800,7 +1839,7 @@ body.simples:not(.na-lista) .simples-nav {
         name,
         emoji: product.emoji || "🛒",
         category: product.category || "Outros",
-        qty: 1,
+        qty: qtdLembrada(name),
         price: precoInicial,
         done: false
       });
@@ -2133,6 +2172,77 @@ body.simples:not(.na-lista) .simples-nav {
       showToast(it.name + " removido");
     }
   });
+
+  /* dica: salvar a lista (depois de 20 min na página da lista) */
+  const tipOverlay = $("tipOverlay");
+  function fechaDica() { tipOverlay.hidden = true; }
+  $("tipOk").addEventListener("click", fechaDica);
+  tipOverlay.addEventListener("click", e => { if (e.target === tipOverlay) fechaDica(); });
+  function mostraDicaSalvar() {
+    $("tipText").textContent = "Importante salvar sua lista. Indicado o botão Salvar nessa página.";
+    tipOverlay.hidden = false;
+  }
+  let usoSeg = 0;
+  setInterval(() => {
+    if (document.hidden || tourAtivo || !selected.length) return;
+    if (!$("listPage").classList.contains("active")) return;
+    usoSeg++;
+    if (usoSeg >= 1200) { usoSeg = 0; mostraDicaSalvar(); }
+  }, 1000);
+
+  /* tour após salvar: menu, lista salva, backup e restaurar */
+  const TOUR = [
+    { sel: "#menuBtn", abre: false, texto: "Suas listas salvas vão parar aqui." },
+    { sel: "#drawer [data-act='abrir']", abre: true, texto: "Para usar uma lista salva, clique nessa seta." },
+    { sel: "#backupBtn", abre: true, texto: "Nunca perca sua lista: toque em Backup para salvar um arquivo no celular." },
+    { sel: "#uploadBtn", abre: true, texto: "Depois, use o arquivo do backup em Restaurar para recuperar tudo." }
+  ];
+  let tourAtivo = false;
+  let tourPasso = 0;
+  const tourRing = $("tourRing");
+  const tourBox = $("tourBox");
+  const tourArrow = $("tourArrow");
+  function iniciaTour() {
+    tourAtivo = true;
+    tourPasso = 0;
+    setTimeout(mostraPassoTour, 250);
+  }
+  function fimTour() {
+    tourAtivo = false;
+    tourRing.hidden = true;
+    tourBox.hidden = true;
+    closeDrawer();
+  }
+  function mostraPassoTour() {
+    if (tourPasso >= TOUR.length) { fimTour(); return; }
+    const st = TOUR[tourPasso];
+    if (st.abre) openDrawer(); else closeDrawer();
+    setTimeout(() => {
+      const el = document.querySelector(st.sel);
+      if (!el) { tourPasso++; mostraPassoTour(); return; }
+      const r = el.getBoundingClientRect();
+      tourRing.hidden = false;
+      tourRing.style.left = (r.left - 6) + "px";
+      tourRing.style.top = (r.top - 6) + "px";
+      tourRing.style.width = (r.width + 12) + "px";
+      tourRing.style.height = (r.height + 12) + "px";
+      $("tourText").textContent = st.texto;
+      $("tourNext").textContent = tourPasso === TOUR.length - 1 ? "Entendi" : "Próximo";
+      tourBox.hidden = false;
+      const w = Math.min(290, window.innerWidth - 24);
+      const h = tourBox.offsetHeight || 140;
+      const cx = r.left + r.width / 2;
+      let left = Math.max(12, Math.min(cx - w / 2, window.innerWidth - w - 12));
+      tourBox.style.width = w + "px";
+      tourBox.style.left = left + "px";
+      const abaixo = r.bottom + 16 + h < window.innerHeight;
+      tourBox.style.top = (abaixo ? r.bottom + 16 : Math.max(12, r.top - 16 - h)) + "px";
+      tourArrow.className = "tour-arrow " + (abaixo ? "up" : "down");
+      tourArrow.style.left = (cx - left - 7) + "px";
+    }, st.abre ? 380 : 60);
+  }
+  $("tourNext").addEventListener("click", () => { tourPasso++; mostraPassoTour(); });
+  $("tourSkip").addEventListener("click", fimTour);
 
   /* layout da lista: linhas (padrão) ou grade de 3 colunas */
   const LAYOUT_KEY = "minha_lista_layout";
@@ -2523,6 +2633,13 @@ body.simples:not(.na-lista) .simples-nav {
 
   function updateSummary() {
     gravaAtual();
+    let mudouQtd = false;
+    selected.forEach(it => {
+      const k = normalize(it.name);
+      const q = Number(it.qty) || 1;
+      if (qtds[k] !== q) { qtds[k] = q; mudouQtd = true; }
+    });
+    if (mudouQtd) { try { localStorage.setItem(QTD_KEY, JSON.stringify(qtds)); } catch (e) {} }
     const total = countTotal();
     const done = countDone();
 
@@ -3142,6 +3259,7 @@ body.simples:not(.na-lista) .simples-nav {
     fechaDlg();
     limpaListaAtual();
     showToast("Lista salva. Nova lista criada");
+    iniciaTour();
   });
   $("newListBtn").addEventListener("click", () => {
     closeDrawer();
@@ -3174,8 +3292,8 @@ body.simples:not(.na-lista) .simples-nav {
     gravaListas();
     savePanel.hidden = true;
     listBtns.hidden = false;
-    openDrawer();
     showToast("Lista salva");
+    iniciaTour();
   });
 
   /* restaura o que estava na lista ao abrir o site de novo */

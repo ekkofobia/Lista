@@ -191,6 +191,7 @@ h1 {
   top: calc(100% + 8px);
   max-height: min(380px, 50dvh);
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--white);
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -860,7 +861,7 @@ body.dark {
 }
 body.dark .bottom-bar { background: rgba(18,18,18,.94); }
 body.dark .suggestion:hover { background: #26243a; }
-body.dark .popular.added { background: #2c2c2c; }
+body.dark .popular.added { background: var(--purple); }
 body.dark .qty-list { background: #000; }
 body.dark .qty-list div { background: #000; color: #fff; }
 body.dark .qty-list div.on { background: var(--purple); color: #fff; }
@@ -1017,12 +1018,12 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
 .splash-actions {
   position: absolute; z-index: 2; left: 16px; right: 16px;
   bottom: max(28px, env(safe-area-inset-bottom));
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: row; gap: 8px;
 }
 .splash-btn {
-  border: 0; border-radius: 16px; padding: 14px 16px;
+  flex: 1 1 0; min-width: 0; border: 0; border-radius: 16px; padding: 14px 6px;
   background: rgba(255,255,255,.94); color: #1d1a33;
-  font-size: 15px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  font-size: 13px; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,.25);
 }
 .splash-btn.primary { background: var(--purple); color: #fff; }
 @media (prefers-reduced-motion: reduce) {
@@ -1034,9 +1035,14 @@ body.dark .category.active, body.fla-preto .category.active, body.fla-vermelho .
 body:has(#suggestions.show) main,
 body:has(#suggestions.show) .bottom-bar { filter: blur(6px); transition: filter .2s; }
 /* modo simplificado: só o cabeçalho e o botão de baixo; a lista aparece ao ir para ela */
-body.simples #searchPage { display: none !important; }
 body.simples:not(.na-lista) .bottom-bar { display: none !important; }
-body.simples:not(.na-lista) .topbar { top: 10%; height: auto; padding: 0 20px; }
+body.simples:not(.na-lista) main { padding-bottom: 96px; }
+.pop-plus, .pop-qty { display: none; }
+body.simples .pop-plus { display: grid; }
+body.simples .pop-qty { display: flex; }
+body.simples .popular-grid { grid-template-columns: 1fr; gap: 8px; }
+body.simples .popular { align-items: center; padding: 10px 12px; }
+body.simples .popular-name, body.simples .popular-name.multi { font-size: 15px; line-height: 1.25; }
 .simples-nav { display: none; }
 body.simples:not(.na-lista) .simples-nav {
   display: flex; position: fixed; left: 20px; right: 20px; bottom: 18px; z-index: 30;
@@ -1148,6 +1154,9 @@ body.simples:not(.na-lista) .simples-nav {
 .item-row.done .item-name { color: #6f6a7d; text-decoration: line-through; }
 .item-row.done .item-meta { color: #a09cb0; }
 .item-row.done .delete-btn { color: var(--muted); }
+body .item-row.done .price-box { background: #ffffff; border-color: #d9d0ff; }
+body .item-row.done .price-input { color: #3d3857 !important; background: transparent !important; -webkit-text-fill-color: #3d3857; }
+body .item-row.done .price-cur { color: #6f6a7d !important; }
 
 /* menu de três pontos */
 .delete-btn { font-size: 18px; line-height: 1; }
@@ -1243,6 +1252,21 @@ body.simples:not(.na-lista) .simples-nav {
   background: var(--white); border-radius: 20px 20px 0 0; display: flex; flex-direction: column; gap: 10px;
 }
 .dlg h3 { margin: 0; font-size: 18px; }
+/* escolha de opções (categoria, ordem): folha no estilo do site e do tema */
+.dlg.seletor { max-height: 82dvh; }
+.seletor-lista { display: flex; flex-direction: column; gap: 6px; max-height: 56dvh; overflow-y: auto; overscroll-behavior: contain; }
+.opc {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;
+  min-height: 50px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--white); color: var(--ink); font: inherit; font-size: 15px; font-weight: 650; text-align: left;
+}
+.opc.placeholder { color: var(--muted); font-weight: 500; }
+.opc.on { background: var(--purple-light); border-color: var(--purple); color: var(--purple); }
+.opc-ck {
+  width: 22px; height: 22px; flex-shrink: 0; display: grid; place-items: center;
+  border-radius: 50%; border: 2px solid var(--line); color: #fff; font-size: 12px; font-weight: 700;
+}
+.opc.on .opc-ck { background: var(--purple); border-color: var(--purple); }
 .dlg p { margin: 0; font-size: 14px; color: var(--muted); }
 .dlg input {
   min-height: 46px; border-radius: 12px; border: 1px solid var(--line); padding: 0 12px;
@@ -1289,8 +1313,8 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
 <div class="splash" aria-label="Carregando">
   <button class="splash-skip" id="splashSkip" type="button">Pular</button>
   <div class="splash-actions">
-    <button class="splash-btn primary" id="splashGo" type="button" hidden>Minhas listas salvas</button>
-    <button class="splash-btn" id="splashScan" type="button">Escanear uma lista (foto)</button>
+    <button class="splash-btn primary" id="splashGo" type="button" hidden>Lista salva</button>
+    <button class="splash-btn" id="splashScan" type="button">Escanear lista</button>
     <button class="splash-btn" id="splashNew" type="button">Nova lista</button>
   </div>
   <video class="splash-video" src="https://res.cloudinary.com/dwrq06fta/video/upload/v1793397328/VID_20261030_145145_078_bsl_nffpg4.mp4" poster="https://res.cloudinary.com/dwrq06fta/video/upload/so_0/v1793397328/VID_20261030_145145_078_bsl_nffpg4.jpg" autoplay muted playsinline preload="auto"></video>
@@ -2012,9 +2036,12 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
     silencioso = true;
     try { renderSuggestions(); } finally { silencioso = false; }
   }
+  let ultimaBusca = null;
   function renderSuggestions() {
     const query = searchInput.value.trim();
     clearSearch.hidden = !query;
+    /* outra busca: a lista volta para o topo */
+    if (query !== ultimaBusca) { ultimaBusca = query; suggestions.scrollTop = 0; }
 
     if (!query) {
       suggestions.classList.remove("show");
@@ -2082,6 +2109,8 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
         };
         [dn, up].forEach(b => {
           b.addEventListener("pointerdown", e => e.stopPropagation());
+          /* não tira o foco do campo: o teclado fica como estava */
+          b.addEventListener("mousedown", e => e.preventDefault());
           b.addEventListener("click", e => { e.stopPropagation(); mudaQtd(b === up ? 1 : -1); });
         });
         plus.append(dn, num, up);
@@ -2165,6 +2194,41 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
     }
   }
 
+  function montaControlePop(product, existing) {
+    if (!existing) {
+      const s = document.createElement("span");
+      s.className = "plus pop-plus";
+      s.textContent = "+";
+      return s;
+    }
+    const wrap = document.createElement("span");
+    wrap.className = "sug-qty pop-qty";
+    const dn = document.createElement("button");
+    dn.type = "button"; dn.className = "sug-step"; dn.textContent = "\u2212";
+    dn.setAttribute("aria-label", "Diminuir");
+    const num = document.createElement("span");
+    num.className = "sug-num"; num.textContent = existing.qty;
+    const up = document.createElement("button");
+    up.type = "button"; up.className = "sug-step"; up.textContent = "+";
+    up.setAttribute("aria-label", "Aumentar");
+    [dn, up].forEach(b => {
+      b.addEventListener("pointerdown", e => e.stopPropagation());
+      b.addEventListener("mousedown", e => e.preventDefault());
+      b.addEventListener("click", e => { e.stopPropagation(); mudaQtdProduto(product, b === up ? 1 : -1); });
+    });
+    wrap.append(dn, num, up);
+    return wrap;
+  }
+  function mudaQtdProduto(product, delta) {
+    const it = selected.find(x => normalize(x.name) === normalize(product.name));
+    if (!it) return;
+    if (delta < 0 && it.qty <= 1) { toggleProduto(product); return; }
+    it.qty = Math.min(999, it.qty + delta);
+    renderItems(); updateSummary(); renderPopular();
+    renderSugestoesSilencioso();
+    if (searchInput.value.trim()) renderSuggestions();
+  }
+
   function renderPopular() {
     const filtered = products.filter(product =>
       currentCategory === "Todos" ||
@@ -2193,7 +2257,7 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
         name.textContent = product.name;
 
 
-        card.append(name);
+        card.append(name, montaControlePop(product, existing));
         card.dataset.name = product.name;
         card.addEventListener("click", () => {
           if (Date.now() - holdEndedAt < 400) return;
@@ -2222,6 +2286,54 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
     const bar = $("filterBar");
     bar.hidden = !bar.hidden;
     $("filterToggleBtn").textContent = bar.hidden ? "Filtrar" : "Fechar filtro";
+  });
+  /* os <select> viram folhas de escolha no estilo do site (o valor continua no select) */
+  function escolheOpcao(sel, titulo) {
+    const ov = document.createElement("div");
+    ov.className = "dlg-overlay";
+    const box = document.createElement("div");
+    box.className = "dlg seletor";
+    box.setAttribute("role", "dialog");
+    box.setAttribute("aria-modal", "true");
+    const h = document.createElement("h3");
+    h.textContent = titulo;
+    const lista = document.createElement("div");
+    lista.className = "seletor-lista";
+    const fecha = () => { document.removeEventListener("keydown", tecla); ov.remove(); };
+    const tecla = e => { if (e.key === "Escape") fecha(); };
+    [...sel.options].forEach(o => {
+      const b = document.createElement("button");
+      b.type = "button";
+      const atual = o.value === sel.value;
+      b.className = "opc" + (atual ? " on" : "") + (o.value === "" ? " placeholder" : "");
+      const nome = document.createElement("span");
+      nome.textContent = o.textContent;
+      const ck = document.createElement("span");
+      ck.className = "opc-ck";
+      ck.textContent = atual ? "\u2713" : "";
+      b.append(nome, ck);
+      b.addEventListener("click", () => {
+        sel.value = o.value;
+        sel.dispatchEvent(new Event("change"));
+        fecha();
+      });
+      lista.append(b);
+    });
+    const cancelar = document.createElement("button");
+    cancelar.type = "button";
+    cancelar.className = "primary-btn ghost";
+    cancelar.textContent = "Cancelar";
+    cancelar.addEventListener("click", fecha);
+    box.append(h, lista, cancelar);
+    ov.append(box);
+    ov.addEventListener("click", e => { if (e.target === ov) fecha(); });
+    document.body.append(ov);
+    document.addEventListener("keydown", tecla);
+  }
+  [["moveSelect", "Escolha a categoria"], ["filterCat", "Filtrar por categoria"], ["filterOrder", "Ordenar lista"]].forEach(([id, titulo]) => {
+    const sel = $(id);
+    sel.addEventListener("mousedown", e => { e.preventDefault(); escolheOpcao(sel, titulo); });
+    sel.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); escolheOpcao(sel, titulo); } });
   });
   $("filterCat").addEventListener("change", () => { filtroCat = $("filterCat").value; renderItems(); });
   $("filterOrder").addEventListener("change", () => { filtroOrdem = $("filterOrder").value; renderItems(); });
@@ -2774,6 +2886,10 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
   });
 
   document.addEventListener("touchmove", e => { if (hold && hold.fired) e.preventDefault(); }, { passive: false });
+  /* com a busca aberta, o fundo não rola: só a própria lista de sugestões */
+  const buscaAberta = e => suggestions.classList.contains("show") && !suggestions.contains(e.target);
+  document.addEventListener("touchmove", e => { if (buscaAberta(e)) e.preventDefault(); }, { passive: false });
+  document.addEventListener("wheel", e => { if (buscaAberta(e)) e.preventDefault(); }, { passive: false });
   document.addEventListener("pointerup", e => endHold(e, false));
   document.addEventListener("pointercancel", e => endHold(e, true));
   itemsCard.addEventListener("contextmenu", e => e.preventDefault());
@@ -2831,6 +2947,8 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
     const done = countDone();
 
     goBtn.disabled = total === 0;
+    /* modo simplificado: o botão de baixo fica desativado sem itens (igual ao da página normal) */
+    $("simplesNavBtn").disabled = total === 0 && !document.body.classList.contains("na-lista");
 
     const totalPrice = selected.reduce((sum, item) =>
       sum + item.price * item.qty, 0);
@@ -2924,10 +3042,14 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
       .filter(l => /[A-Za-zÀ-ú]{2,}/.test(l));
   }
 
+  let abrirBatchAoFoto = false;
   $("batchImgFile").addEventListener("change", async e => {
     const arq = e.target.files && e.target.files[0];
     e.target.value = "";
+    const abrir = abrirBatchAoFoto;
+    abrirBatchAoFoto = false;
     if (!arq) return;
+    if (abrir) openBatch();
     const btn = $("batchImgBtn");
     const bar = $("ocrBar");
     const fill = $("ocrFill");
@@ -3011,7 +3133,8 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
   clearSearch.addEventListener("click", () => {
     searchInput.value = "";
     renderSuggestions();
-    searchInput.focus();
+    suggestions.classList.remove("show");
+    searchInput.blur();
   });
 
   $("categories").addEventListener("click", event => {
@@ -3367,7 +3490,7 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
     const temListas = Array.isArray(listasSalvas) && listasSalvas.length > 0;
     $("splashGo").hidden = !temListas;
     $("splashGo").addEventListener("click", () => { sair(); openDrawer(); });
-    $("splashScan").addEventListener("click", () => { sair(); $("batchImgFile").click(); });
+    $("splashScan").addEventListener("click", () => { abrirBatchAoFoto = true; sair(); $("batchImgFile").click(); });
     $("splashNew").addEventListener("click", () => { sair(); pedeNovaLista(); });
   }
 

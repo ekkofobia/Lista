@@ -2466,17 +2466,31 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
   let tourPasso = 0;
   let tourRapido = false;
   let tourTimer = null;
+  let tourPassos = TOUR;
+  let tourChave = null;
   const TOUR_KEY = "minha_lista_tour_visto";
   function tourJaVisto() { try { return localStorage.getItem(TOUR_KEY) === "1"; } catch (e) { return false; } }
-  function marcaTourVisto() { try { localStorage.setItem(TOUR_KEY, "1"); } catch (e) {} }
+  function marcaTourVisto() { if (tourChave) try { localStorage.setItem(tourChave, "1"); } catch (e) {} }
   const tourRing = $("tourRing");
   const tourBox = $("tourBox");
   const tourArrow = $("tourArrow");
   /* automático só na primeira vez; com rapido = true (5 toques) passa sozinho a cada 5 s */
   function iniciaTour(rapido) {
     if (!rapido && tourJaVisto()) return;
+    tourPassos = TOUR;
+    tourChave = TOUR_KEY;
     tourAtivo = true;
     tourRapido = !!rapido;
+    tourPasso = 0;
+    setTimeout(mostraPassoTour, 250);
+  }
+  /* balão de uma etapa (só destaca e explica): chave = null não marca como visto */
+  function iniciaBalao(passos, chave) {
+    if (tourAtivo) return;
+    tourPassos = passos;
+    tourChave = chave;
+    tourAtivo = true;
+    tourRapido = false;
     tourPasso = 0;
     setTimeout(mostraPassoTour, 250);
   }
@@ -2490,8 +2504,8 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
   }
   function mostraPassoTour() {
     clearTimeout(tourTimer);
-    if (tourPasso >= TOUR.length) { fimTour(); return; }
-    const st = TOUR[tourPasso];
+    if (tourPasso >= tourPassos.length) { fimTour(); return; }
+    const st = tourPassos[tourPasso];
     if (st.abre) openDrawer(); else closeDrawer();
     if (st.lista && !$("listPage").classList.contains("active")) showPage("list");
     setTimeout(() => {
@@ -2504,7 +2518,7 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
       tourRing.style.width = (r.width + 12) + "px";
       tourRing.style.height = (r.height + 12) + "px";
       $("tourText").textContent = st.texto;
-      $("tourNext").textContent = st.ultimo ? "Salvar" : "Próximo";
+      $("tourNext").textContent = st.rotulo || (st.ultimo ? "Salvar" : "Próximo");
       tourBox.hidden = false;
       const w = Math.min(290, window.innerWidth - 24);
       const h = tourBox.offsetHeight || 140;
@@ -2520,11 +2534,34 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
     }, (st.abre || st.lista) ? 380 : 60);
   }
   $("tourNext").addEventListener("click", () => {
-    if (TOUR[tourPasso] && TOUR[tourPasso].ultimo) { fimTour(); $("saveListBtn").click(); return; }
+    const atual = tourPassos[tourPasso];
+    if (atual && atual.ultimo) {
+      fimTour();
+      if (!atual.balao) $("saveListBtn").click();
+      return;
+    }
     tourPasso++;
     mostraPassoTour();
   });
   $("tourSkip").addEventListener("click", fimTour);
+
+  /* dica do menu ☰: uma vez, depois de 5 min de uso; e ao entrar no modo simplificado */
+  const DICA3_KEY = "minha_lista_dica3_vista";
+  const USO_KEY = "minha_lista_uso_seg";
+  let usoTotal = 0;
+  try { usoTotal = Number(localStorage.getItem(USO_KEY)) || 0; } catch (e) {}
+  function balaoMenu(texto, rotulo, chave) {
+    iniciaBalao([{ sel: "#menuBtn", abre: false, lista: false, ultimo: true, balao: true, rotulo, texto }], chave);
+  }
+  setInterval(() => {
+    if (document.hidden) return;
+    usoTotal++;
+    if (usoTotal % 30 === 0) { try { localStorage.setItem(USO_KEY, String(usoTotal)); } catch (e) {} }
+    if (usoTotal < 300 || tourAtivo || !tipOverlay.hidden) return;
+    if (document.body.classList.contains("simples")) return;
+    try { if (localStorage.getItem(DICA3_KEY) === "1") return; localStorage.setItem(DICA3_KEY, "1"); } catch (e) { return; }
+    balaoMenu("Experimente clicar 3 vezes rápido aqui para ativar o modo simplificado.", "Entendi", null);
+  }, 1000);
 
   /* layout da lista: linhas (padrão) ou grade de 3 colunas */
   const LAYOUT_KEY = "minha_lista_layout";
@@ -3340,6 +3377,7 @@ body.fla-vermelho .dw-list.auto { background: #ffe1e4; border-color: #f2a9b1; }
   function aplicaSimples(ligado) {
     document.body.classList.toggle("simples", ligado);
     try { localStorage.setItem(SIMPLES_KEY, ligado ? "1" : "0"); } catch (e) {}
+    if (ligado && !tourAtivo) setTimeout(() => balaoMenu("Para sair do modo simplificado, clique 3 vezes rápido aqui.", "Entendi", null), 700);
   }
   let menuToques = 0;
   let menuTimer;
